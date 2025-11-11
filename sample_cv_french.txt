@@ -1,0 +1,61 @@
+Marie Dubois
+Data Scientist Senior
+marie.dubois@email.com
++33 1 23 45 67 89
+Paris, France
+
+PROFIL PROFESSIONNEL
+Data Scientist expérimentée avec 6 ans d'expérience en machine learning, deep learning et analyse de données.
+Spécialisée en Python, TensorFlow, PyTorch et traitement du langage naturel.
+
+COMPÉTENCES TECHNIQUES
+- Langages de programmation: Python, R, SQL, JavaScript
+- Machine Learning: TensorFlow, PyTorch, Scikit-learn, Keras
+- Analyse de données: Pandas, NumPy, Matplotlib, Seaborn
+- Bases de données: PostgreSQL, MongoDB, Redis
+- Plateformes cloud: AWS, Google Cloud Platform, Azure
+- Outils: Git, Docker, Kubernetes, Jupyter Notebooks
+
+EXPÉRIENCE
+Data Scientist Senior | TechCorp France | 2021 - Présent
+- Développement de modèles ML pour systèmes de recommandation
+- Implémentation de solutions deep learning avec TensorFlow
+- Collaboration avec équipes d'ingénierie pour déploiement en production
+- Encadrement de data scientists juniors
+
+Data Scientist | StartupXYZ | 2019 - 2021
+- Construction de modèles prédictifs pour analyse de churn client
+- Développement de pipelines NLP pour classification de texte
+- Création de tableaux de bord de visualisation avec Python
+
+FORMATION
+Master en Data Science | Université Paris-Saclay | 2019
+Licence en Informatique | Université Pierre et Marie Curie | 2017
+
+CERTIFICATIONS
+- AWS Certified Machine Learning Specialty
+- Google Cloud Professional Data Engineer
+- Certified Analytics Professional (CAP)
+
+PROJETS
+1. Système d'Analyse de Sentiment Client
+   - Modèle NLP utilisant BERT pour classification de sentiment
+   - Précision de 94% sur données de feedback client
+   - Technologies: Python, TensorFlow, BERT, Flask
+
+2. Moteur de Recommandation Temps Réel
+   - Algorithme de filtrage collaboratif
+   - Système de scoring temps réel
+   - Technologies: Python, Apache Spark, Redis, Docker
+
+LANGUES
+- Français (Natif)
+- Anglais (Courant)
+- Espagnol (Intermédiaire)
+
+COMPÉTENCES COMPORTEMENTALES
+- Leadership
+- Communication
+- Résolution de problèmes
+- Collaboration d'équipe
+- Gestion de projet

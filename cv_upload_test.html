@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRecruitAI - CV Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-form {
+            border: 2px dashed #3498db;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+        .file-input {
+            margin: 20px 0;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 SmartRecruitAI - CV Upload</h1>
+        
+        <div class="upload-form">
+            <h3>Upload CV and Create Candidate Automatically</h3>
+            <p>Upload a CV file (PDF or DOCX) and the system will automatically:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>Extract candidate information (name, email, skills)</li>
+                <li>Parse experience and education</li>
+                <li>Generate semantic embeddings</li>
+                <li>Create a candidate profile</li>
+            </ul>
+            
+            <form id="cvUploadForm" enctype="multipart/form-data">
+                <div class="file-input">
+                    <input type="file" id="cvFile" name="file" accept=".pdf,.docx,.doc" required>
+                </div>
+                <button type="submit" class="btn">Upload and Process CV</button>
+            </form>
+        </div>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="info" style="margin-top: 30px; padding: 15px;">
+            <h4>📋 How it works:</h4>
+            <ol>
+                <li><strong>Upload:</strong> Select a CV file (PDF or DOCX)</li>
+                <li><strong>Extract:</strong> AI extracts text and structured data</li>
+                <li><strong>Parse:</strong> NLP identifies skills, experience, education</li>
+                <li><strong>Create:</strong> Candidate profile is created automatically</li>
+                <li><strong>Embed:</strong> Semantic embeddings generated for matching</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cvUploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('cvFile');
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files[0]) {
+                showResult('Please select a file', 'error');
+                return;
+            }
+            
+            formData.append('file', fileInput.files[0]);
+            
+            showResult('Processing CV... Please wait', 'info');
+            
+            try {
+                const response = await fetch('/api/candidates/upload_cv_direct/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`
+                        <h4>✅ CV Processed Successfully!</h4>
+                        <p><strong>Candidate ID:</strong> ${data.candidate_id}</p>
+                        <p><strong>Name:</strong> ${data.candidate.full_name}</p>
+                        <p><strong>Email:</strong> ${data.candidate.email}</p>
+                        <p><strong>Experience:</strong> ${data.candidate.total_experience_years} years</p>
+                        <p><strong>Technical Skills:</strong> ${data.candidate.technical_skills.join(', ')}</p>
+                        <p><strong>Soft Skills:</strong> ${data.candidate.soft_skills.join(', ')}</p>
+                        <hr>
+                        <p><a href="/admin/smartrecruitai/candidate/${data.candidate_id}/change/" target="_blank">View in Admin Panel</a></p>
+                    `, 'success');
+                } else {
+                    showResult(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Network Error: ${error.message}`, 'error');
+            }
+        });
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

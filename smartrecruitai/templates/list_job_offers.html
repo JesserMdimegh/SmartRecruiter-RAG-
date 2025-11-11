@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Offers - SmartRecruitAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .nav-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .search-box {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        
+        .job-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .job-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .job-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .job-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: 700;
+        }
+        
+        .job-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .job-meta {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            color: #666;
+        }
+        
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .job-description {
+            color: #555;
+            margin: 15px 0;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .job-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .skill-tag {
+            background: #f0f0f0;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .job-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        
+        .btn-match {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Job Offers</h1>
+            <p>Browse and manage all job postings</p>
+            <div class="nav-links">
+                <a href="/create-job/">Create Job</a>
+                <a href="/list-jobs/">List Jobs</a>
+                <a href="/match-cv/">Match CV</a>
+                <a href="/upload-cv/">Upload CV</a>
+                <a href="/admin/">Admin</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="controls">
+                <a href="/create-job/" class="btn btn-primary">+ Create New Job Offer</a>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search job offers...">
+                <button class="btn btn-secondary" onclick="loadJobs()">Refresh</button>
+            </div>
+            
+            <div id="jobList" class="job-list">
+                <div class="loading">Loading job offers...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadJobs() {
+            const jobList = document.getElementById('jobList');
+            jobList.innerHTML = '<div class="loading">Loading job offers...</div>';
+            
+            try {
+                const response = await fetch('/api/job-offers/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Handle paginated response (DRF returns {results: [], count: N})
+                // Also handle non-paginated array response
+                let jobs = [];
+                if (Array.isArray(data)) {
+                    jobs = data;
+                } else if (data.results && Array.isArray(data.results)) {
+                    jobs = data.results;
+                } else {
+                    throw new Error('Unexpected response format: ' + JSON.stringify(data));
+                }
+                
+                if (jobs && jobs.length > 0) {
+                    jobList.innerHTML = jobs.map(job => `
+                        <div class="job-card">
+                            <div class="job-header">
+                                <div>
+                                    <h2 class="job-title">${job.title}</h2>
+                                </div>
+                                <span class="job-badge">${job.status || 'open'}</span>
+                            </div>
+                            
+                            <div class="job-meta">
+                                <div class="job-meta-item">
+                                    <strong>Location:</strong> ${job.location}
+                                </div>
+                                <div class="job-meta-item">
+                                    <strong>Type:</strong> ${job.job_type || 'N/A'}
+                                </div>
+                                ${job.remote_allowed ? '<div class="job-meta-item"><strong>Remote:</strong> Yes</div>' : ''}
+                                ${job.salary_min ? `<div class="job-meta-item"><strong>Salary:</strong> ${job.salary_min}${job.salary_max ? '-' + job.salary_max : '+'} ${job.currency || 'EUR'}</div>` : ''}
+                            </div>
+                            
+                            <div class="job-description">
+                                ${job.description || 'No description available.'}
+                            </div>
+                            
+                            ${job.required_skills && job.required_skills.length > 0 ? `
+                                <div class="job-skills">
+                                    ${job.required_skills.slice(0, 10).map(skill => `
+                                        <span class="skill-tag">${skill}</span>
+                                    `).join('')}
+                                    ${job.required_skills.length > 10 ? `<span class="skill-tag">+${job.required_skills.length - 10} more</span>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="job-actions">
+                                <a href="/match-cv/?job_id=${job.id}" class="btn-action btn-match">Match CVs</a>
+                                <a href="/admin/smartrecruitai/joboffer/${job.id}/change/" class="btn-action btn-view" target="_blank">View Details</a>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    jobList.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No job offers found</h3>
+                            <p>Create your first job offer to get started!</p>
+                            <a href="/create-job/" class="btn btn-primary" style="margin-top: 20px;">Create Job Offer</a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                jobList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading job offers</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Please check the browser console (F12) for more details.</p>
+                        <button class="btn btn-primary" onclick="loadJobs()" style="margin-top: 20px;">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const jobCards = document.querySelectorAll('.job-card');
+            
+            jobCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Load jobs on page load
+        loadJobs();
+    </script>
+</body>
+</html>
+

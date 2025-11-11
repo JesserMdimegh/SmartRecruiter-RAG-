@@ -1,0 +1,61 @@
+John Smith
+Data Scientist
+john.smith@email.com
++1 (555) 123-4567
+San Francisco, CA
+
+PROFESSIONAL SUMMARY
+Experienced Data Scientist with 5+ years of experience in machine learning, deep learning, and data analysis. 
+Specialized in Python, TensorFlow, PyTorch, and natural language processing.
+
+TECHNICAL SKILLS
+- Programming Languages: Python, R, SQL, JavaScript
+- Machine Learning: TensorFlow, PyTorch, Scikit-learn, Keras
+- Data Analysis: Pandas, NumPy, Matplotlib, Seaborn
+- Databases: PostgreSQL, MongoDB, Redis
+- Cloud Platforms: AWS, Google Cloud Platform, Azure
+- Tools: Git, Docker, Kubernetes, Jupyter Notebooks
+
+EXPERIENCE
+Senior Data Scientist | TechCorp Inc. | 2020 - Present
+- Led development of ML models for recommendation systems
+- Implemented deep learning solutions using TensorFlow
+- Collaborated with engineering teams to deploy models in production
+- Mentored junior data scientists
+
+Data Scientist | StartupXYZ | 2018 - 2020
+- Built predictive models for customer churn analysis
+- Developed NLP pipelines for text classification
+- Created data visualization dashboards using Python
+
+EDUCATION
+Master of Science in Data Science | Stanford University | 2018
+Bachelor of Science in Computer Science | UC Berkeley | 2016
+
+CERTIFICATIONS
+- AWS Certified Machine Learning Specialty
+- Google Cloud Professional Data Engineer
+- Certified Analytics Professional (CAP)
+
+PROJECTS
+1. Customer Sentiment Analysis System
+   - Built NLP model using BERT for sentiment classification
+   - Achieved 92% accuracy on customer feedback data
+   - Technologies: Python, TensorFlow, BERT, Flask
+
+2. Real-time Recommendation Engine
+   - Developed collaborative filtering algorithm
+   - Implemented real-time scoring system
+   - Technologies: Python, Apache Spark, Redis, Docker
+
+LANGUAGES
+- English (Native)
+- Spanish (Conversational)
+- French (Basic)
+
+SOFT SKILLS
+- Leadership
+- Communication
+- Problem Solving
+- Team Collaboration
+- Project Management

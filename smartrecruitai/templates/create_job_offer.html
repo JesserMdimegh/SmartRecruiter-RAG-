@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Job Offer - SmartRecruitAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .nav-links {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .skills-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .skills-input input {
+            flex: 1;
+        }
+        
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .skill-tag {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .skill-tag span {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Create Job Offer</h1>
+            <p>Fill in the details to create a new job posting</p>
+            <div class="nav-links">
+                <a href="/create-job/">Create Job</a>
+                <a href="/list-jobs/">List Jobs</a>
+                <a href="/match-cv/">Match CV</a>
+                <a href="/upload-cv/">Upload CV</a>
+                <a href="/admin/">Admin</a>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <form id="jobOfferForm">
+                <div class="form-group">
+                    <label for="title">Job Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Senior Data Scientist">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Job Description *</label>
+                    <textarea id="description" name="description" required placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="requirements">Requirements *</label>
+                    <textarea id="requirements" name="requirements" required placeholder="List the required skills, experience, education, etc..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" required placeholder="e.g., Paris, France">
+                </div>
+                
+                <div class="form-group">
+                    <label for="job_type">Job Type *</label>
+                    <select id="job_type" name="job_type" required>
+                        <option value="full-time">Full-time</option>
+                        <option value="part-time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="remote_allowed" name="remote_allowed">
+                        <span>Remote work allowed</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>Salary Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="salary_min" name="salary_min" placeholder="Min">
+                        <input type="number" id="salary_max" name="salary_max" placeholder="Max">
+                        <select id="currency" name="currency" style="width: 100px;">
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                            <option value="GBP">GBP</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="required_skills">Required Skills</label>
+                    <div class="skills-input">
+                        <input type="text" id="skillInput" placeholder="Enter a skill and press Enter">
+                    </div>
+                    <div class="skills-list" id="skillsList"></div>
+                    <input type="hidden" id="required_skills" name="required_skills">
+                </div>
+                
+                <div class="form-group">
+                    <label for="required_experience_years">Required Experience (Years)</label>
+                    <input type="number" id="required_experience_years" name="required_experience_years" min="0" step="0.5" placeholder="e.g., 5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="required_education">Required Education</label>
+                    <input type="text" id="required_education" name="required_education" placeholder="e.g., Master degree in Data Science">
+                </div>
+                
+                <button type="submit" class="btn">Create Job Offer</button>
+            </form>
+            
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const skills = [];
+        
+        document.getElementById('skillInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const skill = this.value.trim();
+                if (skill && !skills.includes(skill)) {
+                    skills.push(skill);
+                    updateSkillsList();
+                    this.value = '';
+                }
+            }
+        });
+        
+        function updateSkillsList() {
+            const skillsList = document.getElementById('skillsList');
+            skillsList.innerHTML = skills.map((skill, index) => `
+                <div class="skill-tag">
+                    ${skill}
+                    <span onclick="removeSkill(${index})">×</span>
+                </div>
+            `).join('');
+            document.getElementById('required_skills').value = JSON.stringify(skills);
+        }
+        
+        function removeSkill(index) {
+            skills.splice(index, 1);
+            updateSkillsList();
+        }
+        
+        document.getElementById('jobOfferForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = 'Creating job offer... Please wait.';
+            
+            const formData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                requirements: document.getElementById('requirements').value,
+                location: document.getElementById('location').value,
+                job_type: document.getElementById('job_type').value,
+                remote_allowed: document.getElementById('remote_allowed').checked,
+                salary_min: parseInt(document.getElementById('salary_min').value) || null,
+                salary_max: parseInt(document.getElementById('salary_max').value) || null,
+                currency: document.getElementById('currency').value,
+                required_skills: skills.length > 0 ? skills : [], // Ensure it's an array
+                required_experience_years: parseInt(document.getElementById('required_experience_years').value) || 0,
+                required_education: document.getElementById('required_education').value,
+            };
+            
+            // Debug: log form data
+            console.log('Form data:', formData);
+            console.log('Skills array:', skills);
+            
+            try {
+                // Get CSRF token
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                
+                const csrftoken = getCookie('csrftoken');
+                
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                
+                // Add CSRF token if available
+                if (csrftoken) {
+                    headers['X-CSRFToken'] = csrftoken;
+                }
+                
+                const response = await fetch('/api/job-offers/', {
+                    method: 'POST',
+                    headers: headers,
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Job Offer Created Successfully!</h3>
+                        <p><strong>Job ID:</strong> ${data.id}</p>
+                        <p><strong>Title:</strong> ${data.title}</p>
+                        <p><strong>Location:</strong> ${data.location}</p>
+                        <p><strong>Required Skills:</strong> ${data.required_skills && data.required_skills.length > 0 ? data.required_skills.join(', ') : 'None specified'}</p>
+                        <p><a href="/list-jobs/" style="color: #155724; font-weight: bold;">View All Job Offers</a> | 
+                           <a href="/match-cv/?job_id=${data.id}" style="color: #155724; font-weight: bold;">Match CVs to This Job</a></p>
+                    `;
+                    document.getElementById('jobOfferForm').reset();
+                    skills.length = 0;
+                    updateSkillsList();
+                } else {
+                    resultDiv.className = 'result error';
+                    let errorMsg = data.detail || JSON.stringify(data);
+                    if (data.required_skills) {
+                        errorMsg += `<br><strong>Required Skills Error:</strong> ${JSON.stringify(data.required_skills)}`;
+                    }
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${errorMsg}`;
+                    console.error('Error response:', data);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
+
