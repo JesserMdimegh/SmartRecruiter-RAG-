@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidates Management - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/smartrecruitai/css/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Candidates Page Styles */
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Sidebar (reuse from dashboard) */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-700) 0%, var(--primary-900) 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-profile {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-400), var(--secondary-600));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            flex: 1;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .nav-menu {
+            padding: var(--space-4) 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            position: relative;
+            margin: var(--space-1) var(--space-3);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--secondary-400);
+            transform: scaleY(0);
+            transition: transform var(--transition);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .nav-text {
+            transition: opacity var(--transition);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .nav-badge {
+            background: var(--error);
+            color: white;
+            font-size: 0.625rem;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            margin-left: auto;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .nav-badge {
+            opacity: 0;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            transition: margin-left var(--transition);
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+        
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: var(--space-4) var(--space-6);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .menu-toggle {
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+        
+        .menu-toggle:hover {
+            background: var(--gray-100);
+            color: var(--primary-600);
+        }
+        
+        .search-bar {
+            position: relative;
+            width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            font-size: 0.875rem;
+            transition: all var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .notification-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+        
+        .notification-btn:hover {
+            background: var(--gray-100);
+            color: var(--primary-600);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: var(--error);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        /* Candidates Content */
+        .candidates-content {
+            padding: var(--space-6);
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+        }
+        
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .page-subtitle {
+            color: var(--gray-600);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--space-3);
+        }
+        
+        /* Filters Section */
+        .filters-section {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-6);
+        }
+        
+        .filters-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .filters-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+        
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .filter-select {
+            padding: var(--space-3);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            transition: all var(--transition);
+            background: white;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            padding: var(--space-2);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            min-height: 44px;
+            background: white;
+        }
+        
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
+            background: var(--primary-100);
+            color: var(--primary-700);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--primary-200);
+        }
+        
+        .skill-tag .remove-skill {
+            cursor: pointer;
+            color: var(--primary-600);
+            font-weight: 600;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .skill-tag .remove-skill:hover {
+            background: var(--primary-200);
+            color: var(--primary-800);
+        }
+        
+        /* Candidates Grid */
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .candidate-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            transform: scaleX(0);
+            transition: transform var(--transition);
+        }
+        
+        .candidate-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-200);
+        }
+        
+        .candidate-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .candidate-header {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        
+        .candidate-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-400), var(--secondary-400));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .candidate-info {
+            flex: 1;
+        }
+        
+        .candidate-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-1);
+        }
+        
+        .candidate-title {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-2);
+        }
+        
+        .candidate-location {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            color: var(--gray-500);
+            font-size: 0.75rem;
+        }
+        
+        .match-score {
+            position: absolute;
+            top: var(--space-4);
+            right: var(--space-4);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+        }
+        
+        .match-score.high {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        
+        .match-score.medium {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+        
+        .match-score.low {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+        }
+        
+        .candidate-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+        
+        .candidate-skill {
+            padding: var(--space-1) var(--space-3);
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .candidate-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            padding: var(--space-3);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-1);
+        }
+        
+        .stat-label {
+            font-size: 0.625rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .professional-links {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+        
+        .profile-link {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+        
+        .profile-link:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .profile-link.github { background: linear-gradient(135deg, #333, #555); }
+        .profile-link.linkedin { background: linear-gradient(135deg, #0077b5, #005885); }
+        .profile-link.gitlab { background: linear-gradient(135deg, #fc6d26, #e74c3c); }
+        .profile-link.portfolio { background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)); }
+        
+        .candidate-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-1);
+        }
+        
+        .action-btn.primary {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--primary-600);
+            border-color: var(--primary-600);
+        }
+        
+        .action-btn.secondary {
+            background: white;
+            color: var(--gray-700);
+            border-color: var(--gray-200);
+        }
+        
+        .action-btn.secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-2);
+            margin-top: var(--space-8);
+        }
+        
+        .pagination-btn {
+            padding: var(--space-2) var(--space-4);
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .candidates-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-4);
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .search-bar {
+                display: none;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .candidate-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SR</div>
+                <div class="sidebar-title">SmartRecruitAI</div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar">JD</div>
+                <div class="user-info">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-role">HR Manager</div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="/hr-dashboard/" class="nav-link">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#jobs" class="nav-link">
+                        <i class="fas fa-briefcase nav-icon"></i>
+                        <span class="nav-text">Job Listings</span>
+                        <span class="nav-badge">12</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#candidates" class="nav-link active">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Candidates</span>
+                        <span class="nav-badge">48</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/match-cv/" class="nav-link">
+                        <i class="fas fa-search nav-icon"></i>
+                        <span class="nav-text">AI Matching</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#interviews" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span class="nav-text">Interviews</span>
+                        <span class="nav-badge">5</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#analytics" class="nav-link">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#team" class="nav-link">
+                        <i class="fas fa-user-friends nav-icon"></i>
+                        <span class="nav-text">Team</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#settings" class="nav-link">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="search-bar">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search candidates by name, skills, or location...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </button>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Candidates Content -->
+            <div class="candidates-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Candidates Management</h1>
+                        <p class="page-subtitle">Manage and review all candidate profiles and applications</p>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-download mr-2"></i>
+                            Export
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Candidate
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Filters Section -->
+                <div class="filters-section">
+                    <div class="filters-header">
+                        <div class="filters-title">
+                            <i class="fas fa-filter"></i>
+                            Filters
+                        </div>
+                        <button class="btn btn-sm btn-secondary">Clear All</button>
+                    </div>
+                    
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label class="filter-label">Job Position</label>
+                            <select class="filter-select">
+                                <option>All Positions</option>
+                                <option>Senior Developer</option>
+                                <option>Product Manager</option>
+                                <option>UX Designer</option>
+                                <option>Data Analyst</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">Experience Level</label>
+                            <select class="filter-select">
+                                <option>All Levels</option>
+                                <option>Entry Level (0-2 years)</option>
+                                <option>Mid Level (3-5 years)</option>
+                                <option>Senior Level (6-10 years)</option>
+                                <option>Expert (10+ years)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">Location</label>
+                            <select class="filter-select">
+                                <option>All Locations</option>
+                                <option>New York</option>
+                                <option>San Francisco</option>
+                                <option>London</option>
+                                <option>Remote</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">Match Score</label>
+                            <select class="filter-select">
+                                <option>All Scores</option>
+                                <option>High (80%+)</option>
+                                <option>Medium (60-79%)</option>
+                                <option>Low (Below 60%)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label class="filter-label">Skills</label>
+                            <div class="skill-tags">
+                                <span class="skill-tag">
+                                    JavaScript
+                                    <span class="remove-skill">×</span>
+                                </span>
+                                <span class="skill-tag">
+                                    Python
+                                    <span class="remove-skill">×</span>
+                                </span>
+                                <span class="skill-tag">
+                                    React
+                                    <span class="remove-skill">×</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidates Grid -->
+                <div class="candidates-grid">
+                    <!-- Candidate Card 1 -->
+                    <div class="candidate-card">
+                        <div class="match-score high">92%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">SJ</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">Sarah Johnson</h3>
+                                <p class="candidate-title">Senior Frontend Developer</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>San Francisco, CA</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">React</span>
+                            <span class="candidate-skill">TypeScript</span>
+                            <span class="candidate-skill">Node.js</span>
+                            <span class="candidate-skill">GraphQL</span>
+                            <span class="candidate-skill">+3</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">4</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link github" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="profile-link portfolio" title="Portfolio">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Card 2 -->
+                    <div class="candidate-card">
+                        <div class="match-score high">88%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">MC</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">Michael Chen</h3>
+                                <p class="candidate-title">Full Stack Developer</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>New York, NY</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">Python</span>
+                            <span class="candidate-skill">Django</span>
+                            <span class="candidate-skill">React</span>
+                            <span class="candidate-skill">PostgreSQL</span>
+                            <span class="candidate-skill">+2</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link github" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="profile-link gitlab" title="GitLab">
+                                <i class="fab fa-gitlab"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Card 3 -->
+                    <div class="candidate-card">
+                        <div class="match-score medium">75%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">EW</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">Emily Wilson</h3>
+                                <p class="candidate-title">UX Designer</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>London, UK</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">Figma</span>
+                            <span class="candidate-skill">Adobe XD</span>
+                            <span class="candidate-skill">Prototyping</span>
+                            <span class="candidate-skill">User Research</span>
+                            <span class="candidate-skill">+1</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">4</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="profile-link portfolio" title="Portfolio">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Card 4 -->
+                    <div class="candidate-card">
+                        <div class="match-score high">85%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">DR</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">David Rodriguez</h3>
+                                <p class="candidate-title">Data Scientist</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Remote</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">Python</span>
+                            <span class="candidate-skill">Machine Learning</span>
+                            <span class="candidate-skill">TensorFlow</span>
+                            <span class="candidate-skill">SQL</span>
+                            <span class="candidate-skill">+4</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">10</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link github" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="profile-link portfolio" title="Portfolio">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Card 5 -->
+                    <div class="candidate-card">
+                        <div class="match-score medium">68%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">AT</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">Amanda Thompson</h3>
+                                <p class="candidate-title">Product Manager</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Boston, MA</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">Agile</span>
+                            <span class="candidate-skill">Scrum</span>
+                            <span class="candidate-skill">Analytics</span>
+                            <span class="candidate-skill">Strategy</span>
+                            <span class="candidate-skill">+2</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">7</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="profile-link portfolio" title="Portfolio">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Candidate Card 6 -->
+                    <div class="candidate-card">
+                        <div class="match-score low">45%</div>
+                        
+                        <div class="candidate-header">
+                            <div class="candidate-avatar">JK</div>
+                            <div class="candidate-info">
+                                <h3 class="candidate-name">James Kim</h3>
+                                <p class="candidate-title">Junior Developer</p>
+                                <div class="candidate-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Seattle, WA</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="candidate-skills">
+                            <span class="candidate-skill">HTML</span>
+                            <span class="candidate-skill">CSS</span>
+                            <span class="candidate-skill">JavaScript</span>
+                            <span class="candidate-skill">Bootstrap</span>
+                        </div>
+                        
+                        <div class="candidate-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Years Exp</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Projects</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">1</div>
+                                <div class="stat-label">Certifications</div>
+                            </div>
+                        </div>
+                        
+                        <div class="professional-links">
+                            <a href="#" class="profile-link github" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" class="profile-link linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="candidate-actions">
+                            <button class="action-btn secondary">
+                                <i class="fas fa-eye"></i>
+                                View Profile
+                            </button>
+                            <button class="action-btn primary">
+                                <i class="fas fa-calendar"></i>
+                                Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">4</button>
+                    <button class="pagination-btn">5</button>
+                    <button class="pagination-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        // Mobile Sidebar Toggle
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        }
+        
+        // Navigation Active State
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Skill Tag Removal
+        document.querySelectorAll('.remove-skill').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+        
+        // Search Functionality
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if (query.length > 2) {
+                // Implement search logic here
+                console.log('Searching for:', query);
+                filterCandidates(query);
+            }
+        });
+        
+        function filterCandidates(query) {
+            const candidateCards = document.querySelectorAll('.candidate-card');
+            candidateCards.forEach(card => {
+                const name = card.querySelector('.candidate-name').textContent.toLowerCase();
+                const title = card.querySelector('.candidate-title').textContent.toLowerCase();
+                const skills = Array.from(card.querySelectorAll('.candidate-skill'))
+                    .map(skill => skill.textContent.toLowerCase())
+                    .join(' ');
+                
+                const matches = name.includes(query) || title.includes(query) || skills.includes(query);
+                card.style.display = matches ? 'block' : 'none';
+            });
+        }
+        
+        // Filter Functionality
+        const filterSelects = document.querySelectorAll('.filter-select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                applyFilters();
+            });
+        });
+        
+        function applyFilters() {
+            // Implement filter logic here
+            console.log('Applying filters...');
+        }
+        
+        // Clear Filters
+        document.querySelector('.filters-header .btn').addEventListener('click', function() {
+            filterSelects.forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // Clear skill tags
+            document.querySelectorAll('.skill-tag').forEach(tag => tag.remove());
+            
+            applyFilters();
+        });
+        
+        // Candidate Card Interactions
+        document.querySelectorAll('.candidate-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking on buttons
+                if (e.target.closest('.candidate-actions')) {
+                    return;
+                }
+                
+                // Navigate to candidate profile
+                console.log('View candidate details');
+            });
+        });
+        
+        // Action Buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                if (this.textContent.includes('View Profile')) {
+                    console.log('View candidate profile');
+                } else if (this.textContent.includes('Schedule Interview')) {
+                    console.log('Schedule interview');
+                }
+            });
+        });
+        
+        // Pagination
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                
+                document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Load page data
+                const page = this.textContent.trim();
+                if (!isNaN(page)) {
+                    console.log('Loading page:', page);
+                }
+            });
+        });
+        
+        // Professional Links
+        document.querySelectorAll('.profile-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const url = this.getAttribute('href');
+                if (url !== '#') {
+                    window.open(url, '_blank');
+                }
+            });
+        });
+        
+        // Responsive Handling
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            } else {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add staggered animation to candidate cards
+            const cards = document.querySelectorAll('.candidate-card');
+            cards.forEach((card, index) => {
+                card.style.animation = `fadeInUp 0.5s ease-out ${index * 0.1}s`;
+            });
+        });
+        
+        // Add fade in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -278,6 +278,222 @@
             padding: 40px;
             color: #666;
         }
+
+        .progress-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .progress-header h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6c757d;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            border: 3px solid #e9ecef;
+        }
+
+        .step-circle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .step-circle.completed {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            max-width: 120px;
+        }
+
+        .step-label.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-label.completed {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 25px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-message {
+            text-align: center;
+            color: #666;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .professional-links {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .professional-links h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 2px solid #e0e0e0;
+        }
+
+        .link-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .link-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .github-icon { background: #333; }
+        .linkedin-icon { background: #0077b5; }
+        .gitlab-icon { background: #fc6d26; }
+        .portfolio-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        .link-text {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .link-type {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .no-links {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
         
         .error {
             background: #f8d7da;
@@ -329,6 +545,52 @@
             </div>
             
             <div id="errorMessage" class="error" style="display: none;"></div>
+            
+            <!-- Enhanced Loading State with Progress -->
+            <div id="loadingSection" class="loading" style="display: none;">
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <h3>🔍 Analyzing CV Match</h3>
+                        <p>Our AI is processing your CV and generating comprehensive matching scores</p>
+                    </div>
+                    
+                    <div class="progress-steps">
+                        <div class="progress-step">
+                            <div class="step-circle" id="step1">1</div>
+                            <div class="step-label">Uploading CV</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="step2">2</div>
+                            <div class="step-label">Extracting Data</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="step3">3</div>
+                            <div class="step-label">Skills Analysis</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="step4">4</div>
+                            <div class="step-label">Matching</div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="step5">5</div>
+                            <div class="step-label">Generating Results</div>
+                        </div>
+                        <div class="progress-line">
+                            <div class="progress-line-fill" id="progressLineFill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                    </div>
+                    
+                    <div class="progress-message" id="progressMessage">
+                        Initializing analysis engine...
+                    </div>
+                </div>
+                
+                <div class="spinner"></div>
+            </div>
             
             <div id="resultSection" class="result-section">
                 <div class="match-card">
@@ -472,7 +734,7 @@
             const jobId = document.getElementById('jobSelect').value;
             const cvFile = document.getElementById('cvFile').files[0];
             
-            // Hide previous results
+            // Hide previous results and errors
             document.getElementById('resultSection').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             
@@ -486,15 +748,14 @@
                 return;
             }
             
-            // Show loading
-            const loading = document.createElement('div');
-            loading.className = 'loading';
-            loading.textContent = 'Processing CV and generating matching scores... This may take a moment.';
-            document.getElementById('resultSection').innerHTML = '';
-            document.getElementById('resultSection').appendChild(loading);
-            document.getElementById('resultSection').style.display = 'block';
+            // Show enhanced loading with progress
+            document.getElementById('loadingSection').style.display = 'block';
             
             try {
+                // Step 1: Uploading CV
+                updateProgress(1, 'Uploading CV file...', 20);
+                await sleep(800);
+                
                 // Get CSRF token
                 function getCookie(name) {
                     let cookieValue = null;
@@ -513,11 +774,12 @@
                 
                 const csrftoken = getCookie('csrftoken');
                 
-                // Step 1: Upload CV and create candidate
+                // Step 2: Extracting Data
+                updateProgress(2, 'Extracting text and skills from CV...', 40);
+                
                 const formData = new FormData();
                 formData.append('file', cvFile);
                 
-                // Note: Don't set Content-Type header for FormData - browser sets it automatically with boundary
                 const headers = {};
                 if (csrftoken) {
                     headers['X-CSRFToken'] = csrftoken;
@@ -545,7 +807,11 @@
                 const candidateData = await uploadResponse.json();
                 const candidateId = candidateData.candidate_id;
                 
-                // Step 2: Process job requirements (to generate embeddings)
+                // Step 3: Skills Analysis
+                updateProgress(3, 'Analyzing technical and soft skills...', 60);
+                await sleep(1000);
+                
+                // Process job requirements
                 const processHeaders = {};
                 if (csrftoken) {
                     processHeaders['X-CSRFToken'] = csrftoken;
@@ -557,21 +823,24 @@
                     credentials: 'include'
                 });
                 
-                // Step 3: Get the job offer data
+                // Step 4: Matching
+                updateProgress(4, 'Calculating compatibility scores...', 80);
+                
+                // Get job offer data
                 const jobResponse = await fetch(`/api/job-offers/${jobId}/`);
                 if (!jobResponse.ok) {
                     throw new Error('Failed to load job offer');
                 }
                 const jobOffer = await jobResponse.json();
                 
-                // Step 4: Get the candidate data
+                // Get candidate data
                 const candidateResponse = await fetch(`/api/candidates/${candidateId}/`);
                 if (!candidateResponse.ok) {
                     throw new Error('Failed to load candidate');
                 }
                 const candidate = await candidateResponse.json();
                 
-                // Step 5: Calculate match manually (or use find_matches and filter)
+                // Calculate match
                 const matchHeaders = {};
                 if (csrftoken) {
                     matchHeaders['X-CSRFToken'] = csrftoken;
@@ -597,6 +866,10 @@
                 
                 const matchData = await matchResponse.json();
                 
+                // Step 5: Generating Results
+                updateProgress(5, 'Generating detailed analysis and recommendations...', 95);
+                await sleep(800);
+                
                 // Handle errors from the API
                 if (matchData.error) {
                     throw new Error(matchData.error + (matchData.detail ? ': ' + matchData.detail : ''));
@@ -612,7 +885,6 @@
                 // Find the match for this specific candidate
                 let match = null;
                 if (matches.length > 0) {
-                    // Try to find match by candidate ID (check both formats)
                     match = matches.find(m => {
                         const candidateIdNum = parseInt(candidateId);
                         return m.candidate === candidateIdNum || 
@@ -622,14 +894,16 @@
                                (m.candidate_name && candidate.full_name && m.candidate_name === candidate.full_name);
                     });
                     
-                    // If not found, use the most recent match (should be the one we just created)
                     if (!match && matches.length > 0) {
-                        match = matches[0]; // First match is usually the most recent
+                        match = matches[0];
                     }
                 }
                 
                 if (match) {
-                    displayMatchResults(match);
+                    updateProgress(5, 'Analysis complete! Preparing results...', 100);
+                    await sleep(500);
+                    
+                    displayMatchResults(match, candidate);
                 } else {
                     throw new Error('No match found for your CV. This may happen if:\n' +
                                    '1. The CV was not processed correctly\n' +
@@ -639,12 +913,119 @@
                 
             } catch (error) {
                 showError(error.message);
-                document.getElementById('resultSection').style.display = 'none';
+                document.getElementById('loadingSection').style.display = 'none';
             }
         }
         
-        function displayMatchResults(match) {
+        // Progress tracking functions
+        function updateProgress(step, message, progress) {
+            // Update step circles
+            for (let i = 1; i <= 5; i++) {
+                const stepCircle = document.getElementById(`step${i}`);
+                const stepLabel = stepCircle.nextElementSibling;
+                
+                if (i < step) {
+                    stepCircle.className = 'step-circle completed';
+                    stepLabel.className = 'step-label completed';
+                } else if (i === step) {
+                    stepCircle.className = 'step-circle active';
+                    stepLabel.className = 'step-label active';
+                } else {
+                    stepCircle.className = 'step-circle';
+                    stepLabel.className = 'step-label';
+                }
+            }
+            
+            // Update progress bars
+            document.getElementById('progressLineFill').style.width = `${progress}%`;
+            document.getElementById('progressBarFill').style.width = `${progress}%`;
+            document.getElementById('progressMessage').textContent = message;
+        }
+        
+        // Helper function for delays
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function displayMatchResults(match, candidate) {
+            // Hide loading section
+            document.getElementById('loadingSection').style.display = 'none';
+            
             const resultSection = document.getElementById('resultSection');
+            
+            // Extract professional links from candidate data
+            const professionalLinks = candidate.professional_links || {};
+            
+            // Generate professional links HTML
+            function generateProfessionalLinksHTML() {
+                const links = [];
+                
+                // GitHub links
+                if (professionalLinks.github && professionalLinks.github.length > 0) {
+                    professionalLinks.github.forEach(link => {
+                        links.push(`
+                            <a href="${link}" target="_blank" class="link-item">
+                                <div class="link-icon github-icon">G</div>
+                                <div class="link-text">
+                                    <div>GitHub Profile</div>
+                                    <div class="link-type">Code Repository</div>
+                                </div>
+                            </a>
+                        `);
+                    });
+                }
+                
+                // LinkedIn links
+                if (professionalLinks.linkedin && professionalLinks.linkedin.length > 0) {
+                    professionalLinks.linkedin.forEach(link => {
+                        links.push(`
+                            <a href="${link}" target="_blank" class="link-item">
+                                <div class="link-icon linkedin-icon">in</div>
+                                <div class="link-text">
+                                    <div>LinkedIn Profile</div>
+                                    <div class="link-type">Professional Network</div>
+                                </div>
+                            </a>
+                        `);
+                    });
+                }
+                
+                // GitLab links
+                if (professionalLinks.gitlab && professionalLinks.gitlab.length > 0) {
+                    professionalLinks.gitlab.forEach(link => {
+                        links.push(`
+                            <a href="${link}" target="_blank" class="link-item">
+                                <div class="link-icon gitlab-icon">G</div>
+                                <div class="link-text">
+                                    <div>GitLab Profile</div>
+                                    <div class="link-type">Code Repository</div>
+                                </div>
+                            </a>
+                        `);
+                    });
+                }
+                
+                // Portfolio links
+                if (professionalLinks.portfolio && professionalLinks.portfolio.length > 0) {
+                    professionalLinks.portfolio.forEach(link => {
+                        links.push(`
+                            <a href="${link}" target="_blank" class="link-item">
+                                <div class="link-icon portfolio-icon">🌐</div>
+                                <div class="link-text">
+                                    <div>Portfolio</div>
+                                    <div class="link-type">Personal Website</div>
+                                </div>
+                            </a>
+                        `);
+                    });
+                }
+                
+                if (links.length === 0) {
+                    return '<div class="no-links">No professional links found in CV</div>';
+                }
+                
+                return `<div class="links-grid">${links.join('')}</div>`;
+            }
             
             // Calculate score and label
             const score = Math.round(match.overall_score || 0);
@@ -705,6 +1086,11 @@
                             <div class="score-item-label">Soft Skills</div>
                             <div class="score-item-value">${softScore}%</div>
                         </div>
+                    </div>
+                    
+                    <div class="professional-links">
+                        <h3>🔗 Professional Links</h3>
+                        ${generateProfessionalLinksHTML()}
                     </div>
                     
                     <div class="explanation-section">

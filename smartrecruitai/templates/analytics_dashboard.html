@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/smartrecruitai/css/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Analytics Dashboard Styles */
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-700) 0%, var(--primary-900) 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-profile {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-400), var(--secondary-600));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            flex: 1;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .nav-menu {
+            padding: var(--space-4) 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            position: relative;
+            margin: var(--space-1) var(--space-3);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--secondary-400);
+            transform: scaleY(0);
+            transition: transform var(--transition);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .nav-text {
+            transition: opacity var(--transition);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .nav-badge {
+            background: var(--error);
+            color: white;
+            font-size: 0.625rem;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            margin-left: auto;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .nav-badge {
+            opacity: 0;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            transition: margin-left var(--transition);
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+        
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: var(--space-4) var(--space-6);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .menu-toggle {
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+        
+        .menu-toggle:hover {
+            background: var(--gray-100);
+            color: var(--primary-600);
+        }
+        
+        .date-range-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--gray-100);
+            border-radius: var(--radius-xl);
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .date-range-selector:hover {
+            background: var(--gray-200);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .export-btn:hover {
+            background: var(--primary-600);
+        }
+        
+        /* Analytics Content */
+        .analytics-content {
+            padding: var(--space-6);
+        }
+        
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .page-subtitle {
+            color: var(--gray-600);
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Key Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition);
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            transform: scaleX(0);
+            transition: transform var(--transition);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .metric-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .metric-icon.blue { background: linear-gradient(135deg, var(--info), #1e40af); }
+        .metric-icon.green { background: linear-gradient(135deg, var(--success), #059669); }
+        .metric-icon.purple { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); }
+        .metric-icon.orange { background: linear-gradient(135deg, var(--warning), #d97706); }
+        .metric-icon.red { background: linear-gradient(135deg, var(--error), #dc2626); }
+        
+        .metric-change {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .metric-change.positive { color: var(--success); }
+        .metric-change.negative { color: var(--error); }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .metric-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .metric-sparkline {
+            margin-top: var(--space-4);
+            height: 40px;
+        }
+        
+        /* Charts Section */
+        .charts-section {
+            margin-bottom: var(--space-8);
+        }
+        
+        .charts-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+        }
+        
+        .charts-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .chart-tabs {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .chart-tab {
+            padding: var(--space-2) var(--space-4);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .chart-tab:hover,
+        .chart-tab.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+        }
+        
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .chart-options {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .chart-option {
+            padding: var(--space-2) var(--space-3);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .chart-option:hover,
+        .chart-option.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        /* Recruitment Funnel */
+        .funnel-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            margin-bottom: var(--space-8);
+        }
+        
+        .funnel-stages {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 200px;
+            margin-bottom: var(--space-6);
+        }
+        
+        .funnel-stage {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .funnel-bar {
+            width: 60px;
+            background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            position: relative;
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+        
+        .funnel-bar:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .funnel-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+        }
+        
+        .funnel-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-align: center;
+        }
+        
+        /* Top Performers */
+        .performers-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .performer-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .performer-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-4) 0;
+            border-bottom: 1px solid var(--gray-100);
+            transition: all var(--transition);
+        }
+        
+        .performer-item:hover {
+            background: var(--gray-50);
+            margin: 0 calc(-1 * var(--space-6));
+            padding-left: var(--space-6);
+            padding-right: var(--space-6);
+        }
+        
+        .performer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .performer-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .performer-rank.gold {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+        
+        .performer-rank.silver {
+            background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+            color: white;
+        }
+        
+        .performer-rank.bronze {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            color: white;
+        }
+        
+        .performer-rank.other {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+        
+        .performer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-400), var(--secondary-400));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .performer-info {
+            flex: 1;
+        }
+        
+        .performer-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-1);
+        }
+        
+        .performer-role {
+            color: var(--gray-600);
+            font-size: 0.75rem;
+        }
+        
+        .performer-stats {
+            text-align: right;
+        }
+        
+        .performer-score {
+            font-weight: 700;
+            color: var(--primary-600);
+            font-size: 1.125rem;
+            margin-bottom: var(--space-1);
+        }
+        
+        .performer-matches {
+            color: var(--gray-500);
+            font-size: 0.625rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .funnel-stages {
+                flex-wrap: wrap;
+                height: auto;
+                gap: var(--space-4);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-4);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .date-range-selector {
+                display: none;
+            }
+        }
+        
+        /* Animations */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-in {
+            animation: slideInFromLeft var(--transition) ease-out;
+        }
+        
+        .metric-card {
+            animation: fadeInUp var(--transition) ease-out;
+        }
+        
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
+        .metric-card:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SR</div>
+                <div class="sidebar-title">SmartRecruitAI</div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar">JD</div>
+                <div class="user-info">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-role">HR Manager</div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="/hr-dashboard/" class="nav-link">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#jobs" class="nav-link">
+                        <i class="fas fa-briefcase nav-icon"></i>
+                        <span class="nav-text">Job Listings</span>
+                        <span class="nav-badge">12</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#candidates" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Candidates</span>
+                        <span class="nav-badge">48</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/match-cv/" class="nav-link">
+                        <i class="fas fa-search nav-icon"></i>
+                        <span class="nav-text">AI Matching</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#interviews" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span class="nav-text">Interviews</span>
+                        <span class="nav-badge">5</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#analytics" class="nav-link active">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#team" class="nav-link">
+                        <i class="fas fa-user-friends nav-icon"></i>
+                        <span class="nav-text">Team</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#settings" class="nav-link">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="date-range-selector">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Last 30 Days</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="export-btn">
+                        <i class="fas fa-download"></i>
+                        <span>Export Report</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Analytics Content -->
+            <div class="analytics-content">
+                <h1 class="page-title">Analytics Dashboard</h1>
+                <p class="page-subtitle">Comprehensive insights into your recruitment performance</p>
+                
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card animate-in">
+                        <div class="metric-header">
+                            <div class="metric-icon blue">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>23%</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">1,247</div>
+                        <div class="metric-label">Total Applications</div>
+                        <canvas class="metric-sparkline" id="applicationsSparkline"></canvas>
+                    </div>
+                    
+                    <div class="metric-card animate-in">
+                        <div class="metric-header">
+                            <div class="metric-icon green">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>18%</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">89%</div>
+                        <div class="metric-label">Match Accuracy</div>
+                        <canvas class="metric-sparkline" id="accuracySparkline"></canvas>
+                    </div>
+                    
+                    <div class="metric-card animate-in">
+                        <div class="metric-header">
+                            <div class="metric-icon purple">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="metric-change negative">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>12%</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">4.2</div>
+                        <div class="metric-label">Avg. Days to Hire</div>
+                        <canvas class="metric-sparkline" id="timeSparkline"></canvas>
+                    </div>
+                    
+                    <div class="metric-card animate-in">
+                        <div class="metric-header">
+                            <div class="metric-icon orange">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>8%</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">156</div>
+                        <div class="metric-label">Candidates Hired</div>
+                        <canvas class="metric-sparkline" id="hiredSparkline"></canvas>
+                    </div>
+                    
+                    <div class="metric-card animate-in">
+                        <div class="metric-header">
+                            <div class="metric-icon red">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="metric-change negative">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>5%</span>
+                            </div>
+                        </div>
+                        <div class="metric-value">$2,847</div>
+                        <div class="metric-label">Cost per Hire</div>
+                        <canvas class="metric-sparkline" id="costSparkline"></canvas>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="charts-header">
+                        <h2 class="charts-title">Performance Trends</h2>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active">Applications</button>
+                            <button class="chart-tab">Interviews</button>
+                            <button class="chart-tab">Hires</button>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Recruitment Pipeline</h3>
+                                <div class="chart-options">
+                                    <button class="chart-option active">Week</button>
+                                    <button class="chart-option">Month</button>
+                                    <button class="chart-option">Year</button>
+                                </div>
+                            </div>
+                            <canvas id="pipelineChart" height="100"></canvas>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Department Distribution</h3>
+                            </div>
+                            <canvas id="departmentChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recruitment Funnel -->
+                <div class="funnel-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Recruitment Funnel</h3>
+                        <div class="chart-options">
+                            <button class="chart-option active">This Month</button>
+                            <button class="chart-option">Last Month</button>
+                        </div>
+                    </div>
+                    
+                    <div class="funnel-stages">
+                        <div class="funnel-stage">
+                            <div class="funnel-bar" style="height: 180px;" data-value="1,247"></div>
+                            <div class="funnel-label">Applications</div>
+                        </div>
+                        
+                        <div class="funnel-stage">
+                            <div class="funnel-bar" style="height: 140px;" data-value="892"></div>
+                            <div class="funnel-label">Screened</div>
+                        </div>
+                        
+                        <div class="funnel-stage">
+                            <div class="funnel-bar" style="height: 100px;" data-value="456"></div>
+                            <div class="funnel-label">Interviewed</div>
+                        </div>
+                        
+                        <div class="funnel-stage">
+                            <div class="funnel-bar" style="height: 60px;" data-value="234"></div>
+                            <div class="funnel-label">Offers</div>
+                        </div>
+                        
+                        <div class="funnel-stage">
+                            <div class="funnel-bar" style="height: 40px;" data-value="156"></div>
+                            <div class="funnel-label">Hired</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Performers -->
+                <div class="performers-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Top Performing Recruiters</h3>
+                        <button class="chart-option">View All</button>
+                    </div>
+                    
+                    <div class="performer-list">
+                        <div class="performer-item">
+                            <div class="performer-rank gold">1</div>
+                            <div class="performer-avatar">SJ</div>
+                            <div class="performer-info">
+                                <div class="performer-name">Sarah Johnson</div>
+                                <div class="performer-role">Senior Technical Recruiter</div>
+                            </div>
+                            <div class="performer-stats">
+                                <div class="performer-score">94.2%</div>
+                                <div class="performer-matches">48 matches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performer-item">
+                            <div class="performer-rank silver">2</div>
+                            <div class="performer-avatar">MC</div>
+                            <div class="performer-info">
+                                <div class="performer-name">Michael Chen</div>
+                                <div class="performer-role">Technical Recruiter</div>
+                            </div>
+                            <div class="performer-stats">
+                                <div class="performer-score">91.8%</div>
+                                <div class="performer-matches">42 matches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performer-item">
+                            <div class="performer-rank bronze">3</div>
+                            <div class="performer-avatar">EW</div>
+                            <div class="performer-info">
+                                <div class="performer-name">Emily Wilson</div>
+                                <div class="performer-role">Senior Recruiter</div>
+                            </div>
+                            <div class="performer-stats">
+                                <div class="performer-score">89.5%</div>
+                                <div class="performer-matches">38 matches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performer-item">
+                            <div class="performer-rank other">4</div>
+                            <div class="performer-avatar">DR</div>
+                            <div class="performer-info">
+                                <div class="performer-name">David Rodriguez</div>
+                                <div class="performer-role">Recruiter</div>
+                            </div>
+                            <div class="performer-stats">
+                                <div class="performer-score">87.3%</div>
+                                <div class="performer-matches">35 matches</div>
+                            </div>
+                        </div>
+                        
+                        <div class="performer-item">
+                            <div class="performer-rank other">5</div>
+                            <div class="performer-avatar">AT</div>
+                            <div class="performer-info">
+                                <div class="performer-name">Amanda Thompson</div>
+                                <div class="performer-role">Junior Recruiter</div>
+                            </div>
+                            <div class="performer-stats">
+                                <div class="performer-score">85.1%</div>
+                                <div class="performer-matches">28 matches</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        // Mobile Sidebar Toggle
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        }
+        
+        // Chart.js Configuration
+        const chartColors = {
+            primary: '#6366f1',
+            secondary: '#d946ef',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6'
+        };
+        
+        // Sparkline Charts
+        function createSparkline(canvasId, data, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['', '', '', '', '', '', ''],
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: `${color}20`,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+        
+        // Initialize Sparklines
+        createSparkline('applicationsSparkline', [30, 45, 35, 50, 49, 60, 70], chartColors.info);
+        createSparkline('accuracySparkline', [85, 88, 87, 89, 91, 90, 89], chartColors.success);
+        createSparkline('timeSparkline', [5.2, 5.0, 4.8, 4.5, 4.3, 4.1, 4.2], chartColors.warning);
+        createSparkline('hiredSparkline', [20, 25, 22, 28, 30, 32, 35], chartColors.primary);
+        createSparkline('costSparkline', [3200, 3100, 3000, 2900, 2850, 2800, 2847], chartColors.danger);
+        
+        // Pipeline Chart
+        const pipelineCtx = document.getElementById('pipelineChart').getContext('2d');
+        const pipelineChart = new Chart(pipelineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7'],
+                datasets: [{
+                    label: 'Applications',
+                    data: [120, 145, 165, 180, 195, 210, 224],
+                    borderColor: chartColors.info,
+                    backgroundColor: `${chartColors.info}20`,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Interviews',
+                    data: [80, 95, 110, 125, 135, 145, 156],
+                    borderColor: chartColors.warning,
+                    backgroundColor: `${chartColors.warning}20`,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Hires',
+                    data: [15, 18, 22, 25, 28, 30, 32],
+                    borderColor: chartColors.success,
+                    backgroundColor: `${chartColors.success}20`,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Department Chart
+        const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+        const departmentChart = new Chart(departmentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations'],
+                datasets: [{
+                    data: [35, 25, 20, 10, 10],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.info
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Chart Tabs
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const siblings = this.parentElement.querySelectorAll('.chart-tab');
+                siblings.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update chart data based on selection
+                updatePipelineChart(this.textContent);
+            });
+        });
+        
+        function updatePipelineChart(tab) {
+            let datasets;
+            
+            switch(tab) {
+                case 'Applications':
+                    datasets = [{
+                        label: 'Applications',
+                        data: [120, 145, 165, 180, 195, 210, 224],
+                        borderColor: chartColors.info,
+                        backgroundColor: `${chartColors.info}20`,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'Interviews':
+                    datasets = [{
+                        label: 'Interviews',
+                        data: [80, 95, 110, 125, 135, 145, 156],
+                        borderColor: chartColors.warning,
+                        backgroundColor: `${chartColors.warning}20`,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+                case 'Hires':
+                    datasets = [{
+                        label: 'Hires',
+                        data: [15, 18, 22, 25, 28, 30, 32],
+                        borderColor: chartColors.success,
+                        backgroundColor: `${chartColors.success}20`,
+                        tension: 0.4,
+                        fill: true
+                    }];
+                    break;
+            }
+            
+            pipelineChart.data.datasets = datasets;
+            pipelineChart.update();
+        }
+        
+        // Chart Options Toggle
+        document.querySelectorAll('.chart-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const siblings = this.parentElement.querySelectorAll('.chart-option');
+                siblings.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update chart data based on selection
+                updateChartData(this.textContent);
+            });
+        });
+        
+        function updateChartData(period) {
+            // Simulate data update based on period
+            let labels, data1, data2, data3;
+            
+            switch(period) {
+                case 'Week':
+                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7'];
+                    data1 = [120, 145, 165, 180, 195, 210, 224];
+                    data2 = [80, 95, 110, 125, 135, 145, 156];
+                    data3 = [15, 18, 22, 25, 28, 30, 32];
+                    break;
+                case 'Month':
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                    data1 = [450, 520, 580, 640, 690, 740];
+                    data2 = [320, 380, 420, 460, 500, 540];
+                    data3 = [65, 78, 88, 95, 105, 115];
+                    break;
+                case 'Year':
+                    labels = ['2019', '2020', '2021', '2022', '2023', '2024'];
+                    data1 = [2400, 2800, 3200, 3800, 4200, 4800];
+                    data2 = [1800, 2100, 2400, 2850, 3200, 3600];
+                    data3 = [320, 380, 450, 520, 580, 650];
+                    break;
+            }
+            
+            pipelineChart.data.labels = labels;
+            pipelineChart.data.datasets[0].data = data1;
+            pipelineChart.data.datasets[1].data = data2;
+            pipelineChart.data.datasets[2].data = data3;
+            pipelineChart.update();
+        }
+        
+        // Export Functionality
+        document.querySelector('.export-btn').addEventListener('click', function() {
+            console.log('Exporting analytics report...');
+            // Implement export logic here
+        });
+        
+        // Date Range Selector
+        document.querySelector('.date-range-selector').addEventListener('click', function() {
+            console.log('Opening date range picker...');
+            // Implement date range picker here
+        });
+        
+        // Funnel Bar Interactions
+        document.querySelectorAll('.funnel-bar').forEach(bar => {
+            bar.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                console.log('Funnel stage clicked:', value);
+                // Show detailed breakdown for this stage
+            });
+        });
+        
+        // Performer Item Interactions
+        document.querySelectorAll('.performer-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const name = this.querySelector('.performer-name').textContent;
+                console.log('View performer details:', name);
+                // Navigate to performer details
+            });
+        });
+        
+        // Responsive Handling
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            } else {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

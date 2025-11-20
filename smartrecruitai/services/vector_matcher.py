@@ -139,22 +139,125 @@ class VectorMatcher:
         """
         scores = {}
         
-        # Technical skills score
-        candidate_skills = set(candidate_data.get('technical_skills', []))
-        job_skills = set(job_data.get('required_skills', []))
+        # Technical skills score (enhanced matching with synonyms and variations)
+        candidate_skills = set(skill.lower().strip() for skill in candidate_data.get('technical_skills', []) if skill)
+        job_skills = set(skill.lower().strip() for skill in job_data.get('required_skills', []) if skill)
         
         if job_skills:
-            # Normalize skills for comparison (lowercase, remove spaces)
-            candidate_skills_normalized = {s.lower().strip() for s in candidate_skills if s}
-            job_skills_normalized = {s.lower().strip() for s in job_skills if s}
+            # Enhanced skill matching with synonyms and variations
+            skill_synonyms = {
+                # Programming languages
+                'javascript': ['js', 'ecmascript', 'es6', 'es2015'],
+                'typescript': ['ts'],
+                'python': ['py', 'python3'],
+                'java': ['jvm', 'jdk'],
+                'c#': ['csharp', 'c-sharp', '.net'],
+                'c++': ['cpp', 'c-plus-plus'],
+                'php': ['hypertext preprocessor'],
+                'ruby': ['rails', 'ruby on rails'],
+                'go': ['golang'],
+                'swift': ['ios'],
+                'kotlin': ['android'],
+                'rust': ['rs'],
+                
+                # Web technologies
+                'html': ['html5', 'markup'],
+                'css': ['css3', 'sass', 'scss', 'less', 'stylus'],
+                'react': ['reactjs', 'react.js', 'jsx'],
+                'angular': ['angularjs', 'angular.js', 'ng'],
+                'vue': ['vuejs', 'vue.js', 'vuejs'],
+                'node.js': ['node', 'nodejs', 'backend javascript'],
+                'express': ['expressjs', 'express.js'],
+                'django': ['python django'],
+                'flask': ['python flask'],
+                'laravel': ['php laravel'],
+                'spring': ['spring boot', 'spring framework'],
+                'asp.net': ['.net core', 'aspnet'],
+                
+                # Databases
+                'sql': ['mysql', 'postgresql', 'postgres', 'sqlite', 'oracle', 'mssql'],
+                'nosql': ['mongodb', 'cassandra', 'redis', 'elasticsearch', 'dynamodb'],
+                'postgresql': ['postgres', 'psql'],
+                'mysql': ['mariadb'],
+                'mongodb': ['mongo', 'nosql mongodb'],
+                'redis': ['cache', 'in-memory database'],
+                
+                # Cloud platforms
+                'aws': ['amazon web services', 'ec2', 's3', 'lambda', 'rds'],
+                'azure': ['microsoft azure', 'azure cloud'],
+                'gcp': ['google cloud platform', 'google cloud'],
+                'docker': ['containers', 'containerization'],
+                'kubernetes': ['k8s', 'orchestration'],
+                
+                # DevOps tools
+                'jenkins': ['ci/cd', 'continuous integration'],
+                'git': ['version control', 'github', 'gitlab', 'bitbucket'],
+                'terraform': ['infrastructure as code', 'iac'],
+                'ansible': ['automation', 'configuration management'],
+                
+                # Frontend technologies
+                'bootstrap': ['css framework', 'responsive design'],
+                'tailwind': ['tailwind css', 'utility-first css'],
+                'webpack': ['bundler', 'module bundler'],
+                'babel': ['transpiler', 'javascript transpiler'],
+                
+                # Mobile development
+                'ios': ['iphone', 'ipad', 'objective-c'],
+                'android': ['android studio', 'mobile development'],
+                'react native': ['cross-platform mobile'],
+                'flutter': ['dart', 'cross-platform'],
+                
+                # Data science/AI
+                'tensorflow': ['deep learning', 'neural networks'],
+                'pytorch': ['machine learning', 'ai'],
+                'scikit-learn': ['sklearn', 'machine learning library'],
+                'pandas': ['data analysis', 'data manipulation'],
+                'numpy': ['numerical computing', 'scientific computing'],
+                
+                # Testing
+                'jest': ['javascript testing', 'unit testing'],
+                'pytest': ['python testing'],
+                'junit': ['java testing'],
+                'selenium': ['automated testing', 'web testing'],
+                
+                # Other technologies
+                'rest': ['rest api', 'restful', 'web api'],
+                'graphql': ['gql', 'query language'],
+                'microservices': ['microservice architecture'],
+                'agile': ['scrum', 'kanban', 'iterative development'],
+                'linux': ['unix', 'ubuntu', 'centos', 'debian'],
+                'windows': ['microsoft windows', 'win32'],
+                'macos': ['os x', 'mac', 'apple os']
+            }
             
-            # Calculate match
-            matched_skills = candidate_skills_normalized & job_skills_normalized
-            skills_match = len(matched_skills) / len(job_skills_normalized) if job_skills_normalized else 0.0
-            scores['technical_skills'] = skills_match
+            # Expand job skills with synonyms
+            expanded_job_skills = set(job_skills)
+            for skill in job_skills:
+                if skill in skill_synonyms:
+                    expanded_job_skills.update(skill_synonyms[skill])
+            
+            # Expand candidate skills with synonyms
+            expanded_candidate_skills = set(candidate_skills)
+            for skill in candidate_skills:
+                if skill in skill_synonyms:
+                    expanded_candidate_skills.update(skill_synonyms[skill])
+            
+            # Calculate matches with expanded skill sets
+            matched = expanded_candidate_skills & expanded_job_skills
+            
+            # Weight exact matches higher than synonym matches
+            exact_matches = candidate_skills & job_skills
+            synonym_matches = matched - exact_matches
+            
+            # Calculate score with weighting
+            if expanded_job_skills:
+                exact_score = len(exact_matches) / len(expanded_job_skills) * 1.0  # Full weight for exact matches
+                synonym_score = len(synonym_matches) / len(expanded_job_skills) * 0.7  # 70% weight for synonym matches
+                scores['technical_skills'] = min(1.0, exact_score + synonym_score)
+            else:
+                scores['technical_skills'] = 0.0
         else:
             # If job has no required skills, give partial credit based on candidate having skills
-            # This prevents 0% when job requirements weren't specified
             if candidate_skills:
                 scores['technical_skills'] = 0.5  # Partial credit
             else:
@@ -183,16 +286,21 @@ class VectorMatcher:
         else:
             scores['education'] = 1.0
         
-        # Soft skills score (cosine similarity on text)
-        candidate_soft = ' '.join(candidate_data.get('soft_skills', []))
-        job_soft = job_data.get('required_soft_skills', '')
+        # Soft skills score (enhanced matching)
+        candidate_soft = set(skill.lower().strip() for skill in candidate_data.get('soft_skills', []) if skill)
+        job_soft = set(skill.lower().strip() for skill in job_data.get('required_soft_skills', []) if skill)
         
-        if candidate_soft and job_soft:
-            candidate_emb = self.model.encode(candidate_soft)
-            job_emb = self.model.encode(job_soft)
-            scores['soft_skills'] = float(1 - cosine(candidate_emb, job_emb))
+        if job_soft:
+            # Calculate soft skills match ratio
+            matched_soft = candidate_soft & job_soft
+            soft_score = len(matched_soft) / len(job_soft) if job_soft else 0.0
+            scores['soft_skills'] = soft_score
         else:
-            scores['soft_skills'] = 0.0
+            # If job has no soft skills requirements, give partial credit for having soft skills
+            if candidate_soft:
+                scores['soft_skills'] = 0.3  # Partial credit for having soft skills
+            else:
+                scores['soft_skills'] = 0.0
         
         return scores
 

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Offers - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom styles for this template */
+        .jobs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .filters-section {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .search-bar {
+            position: relative;
+            margin-bottom: var(--space-6);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            font-size: 1rem;
+            transition: all var(--transition);
+            background: white;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-4);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 1.125rem;
+        }
+        
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        
+        .filter-tag {
+            padding: var(--space-2) var(--space-4);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .filter-tag:hover {
+            background: var(--gray-200);
+            border-color: var(--gray-300);
+        }
+        
+        .filter-tag.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .filter-tag .count {
+            background: rgba(0, 0, 0, 0.1);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .filter-tag.active .count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .job-card {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            transform: scaleX(0);
+            transition: transform var(--transition);
+        }
+        
+        .job-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-2xl);
+            border-color: var(--primary-200);
+        }
+        
+        .job-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .job-header {
+            margin-bottom: var(--space-4);
+        }
+        
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+            line-height: 1.3;
+        }
+        
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .job-meta-item i {
+            width: 16px;
+            text-align: center;
+        }
+        
+        .job-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+        
+        .job-skill {
+            padding: var(--space-1) var(--space-3);
+            background: var(--primary-50);
+            color: var(--primary-700);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--primary-100);
+        }
+        
+        .job-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: var(--space-4);
+            display: -webkit-box;
+            display: box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .job-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .job-date {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        
+        .job-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .action-btn {
+            padding: var(--space-2) var(--space-3);
+            background: transparent;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+        
+        .action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+            color: var(--gray-900);
+        }
+        
+        .action-btn.primary {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--primary-600);
+            border-color: var(--primary-600);
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--space-16) var(--space-8);
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            color: var(--gray-400);
+            margin-bottom: var(--space-4);
+        }
+        
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .empty-state-description {
+            color: var(--gray-600);
+            margin-bottom: var(--space-6);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-2);
+            margin-top: var(--space-8);
+        }
+        
+        .pagination-btn {
+            padding: var(--space-2) var(--space-4);
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .job-type-badge {
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .job-type-full-time {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .job-type-part-time {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .job-type-remote {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .job-type-contract {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .jobs-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-tags {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-list-alt fa-3x mb-4"></i>
+                </div>
+                <h1>Job Offers</h1>
+                <p>Manage and view all your active job postings</p>
+                
+                <!-- Navigation -->
+                <nav class="nav-links">
+                    <a href="/create-job/" class="nav-link">
+                        <i class="fas fa-plus-circle mr-2"></i>Create Job
+                    </a>
+                    <a href="/list-jobs/" class="nav-link">
+                        <i class="fas fa-list mr-2"></i>List Jobs
+                    </a>
+                    <a href="/match-cv/" class="nav-link">
+                        <i class="fas fa-search mr-2"></i>Match CV
+                    </a>
+                    <a href="/upload-cv/" class="nav-link">
+                        <i class="fas fa-upload mr-2"></i>Upload CV
+                    </a>
+                    <a href="/admin/" class="nav-link">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container jobs-container">
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-value" id="totalJobs">0</div>
+                <div class="stat-label">Total Jobs</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--success), #059669);">
+                <div class="stat-value" id="activeJobs">0</div>
+                <div class="stat-label">Active Jobs</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--accent-purple), #7c3aed);">
+                <div class="stat-value" id="remoteJobs">0</div>
+                <div class="stat-label">Remote Jobs</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--warning), #d97706);">
+                <div class="stat-value" id="recentJobs">0</div>
+                <div class="stat-label">Added This Week</div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input" 
+                       placeholder="Search job titles, locations, or skills...">
+            </div>
+            
+            <div class="filter-tags">
+                <div class="filter-tag active" data-filter="all">
+                    All Jobs
+                    <span class="count" id="allCount">0</span>
+                </div>
+                <div class="filter-tag" data-filter="full-time">
+                    Full Time
+                    <span class="count" id="fullTimeCount">0</span>
+                </div>
+                <div class="filter-tag" data-filter="remote">
+                    Remote
+                    <span class="count" id="remoteCount">0</span>
+                </div>
+                <div class="filter-tag" data-filter="contract">
+                    Contract
+                    <span class="count" id="contractCount">0</span>
+                </div>
+                <div class="filter-tag" data-filter="recent">
+                    Recent
+                    <span class="count" id="recentCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs Grid -->
+        <div id="jobsGrid" class="jobs-grid">
+            <!-- Job cards will be dynamically loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <div class="empty-state-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <h2 class="empty-state-title">No Job Offers Found</h2>
+            <p class="empty-state-description">
+                Start by creating your first job offer to begin matching with candidates.
+            </p>
+            <a href="/create-job/" class="btn btn-primary">
+                <i class="fas fa-plus mr-2"></i>Create Your First Job
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination hidden">
+            <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div id="pageNumbers"></div>
+            <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // State management
+        let jobs = [];
+        let filteredJobs = [];
+        let currentPage = 1;
+        const jobsPerPage = 12;
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // Load jobs from API
+        async function loadJobs() {
+            try {
+                const response = await fetch('/api/job-offers/');
+                jobs = await response.json();
+                filteredJobs = [...jobs];
+                
+                updateStatistics();
+                updateFilterCounts();
+                renderJobs();
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                showError('Failed to load job offers');
+            }
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalJobs = jobs.length;
+            const activeJobs = jobs.filter(job => job.status === 'active').length;
+            const remoteJobs = jobs.filter(job => job.job_type === 'remote').length;
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const recentJobs = jobs.filter(job => new Date(job.created_at) > oneWeekAgo).length;
+
+            document.getElementById('totalJobs').textContent = totalJobs;
+            document.getElementById('activeJobs').textContent = activeJobs;
+            document.getElementById('remoteJobs').textContent = remoteJobs;
+            document.getElementById('recentJobs').textContent = recentJobs;
+        }
+
+        // Update filter counts
+        function updateFilterCounts() {
+            document.getElementById('allCount').textContent = jobs.length;
+            document.getElementById('fullTimeCount').textContent = jobs.filter(job => job.job_type === 'full-time').length;
+            document.getElementById('remoteCount').textContent = jobs.filter(job => job.job_type === 'remote').length;
+            document.getElementById('contractCount').textContent = jobs.filter(job => job.job_type === 'contract').length;
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            document.getElementById('recentCount').textContent = jobs.filter(job => new Date(job.created_at) > oneWeekAgo).length;
+        }
+
+        // Filter jobs
+        function filterJobs() {
+            filteredJobs = jobs.filter(job => {
+                // Apply search filter
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    const matchesSearch = 
+                        job.title.toLowerCase().includes(query) ||
+                        job.location.toLowerCase().includes(query) ||
+                        job.description.toLowerCase().includes(query) ||
+                        (job.required_skills && job.required_skills.some(skill => skill.toLowerCase().includes(query)));
+                    
+                    if (!matchesSearch) return false;
+                }
+
+                // Apply category filter
+                switch (currentFilter) {
+                    case 'full-time':
+                        return job.job_type === 'full-time';
+                    case 'remote':
+                        return job.job_type === 'remote';
+                    case 'contract':
+                        return job.job_type === 'contract';
+                    case 'recent':
+                        const oneWeekAgo = new Date();
+                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                        return new Date(job.created_at) > oneWeekAgo;
+                    default:
+                        return true;
+                }
+            });
+
+            currentPage = 1;
+            renderJobs();
+        }
+
+        // Render jobs
+        function renderJobs() {
+            const jobsGrid = document.getElementById('jobsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const pagination = document.getElementById('pagination');
+
+            if (filteredJobs.length === 0) {
+                jobsGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                pagination.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            // Calculate pagination
+            const startIndex = (currentPage - 1) * jobsPerPage;
+            const endIndex = startIndex + jobsPerPage;
+            const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+
+            // Render job cards
+            jobsGrid.innerHTML = paginatedJobs.map(job => createJobCard(job)).join('');
+
+            // Render pagination
+            if (filteredJobs.length > jobsPerPage) {
+                renderPagination();
+                pagination.classList.remove('hidden');
+            } else {
+                pagination.classList.add('hidden');
+            }
+        }
+
+        // Create job card HTML
+        function createJobCard(job) {
+            const jobTypeClass = `job-type-${job.job_type || 'full-time'}`;
+            const jobTypeText = job.job_type ? job.job_type.replace('-', ' ') : 'Full Time';
+            const skills = job.required_skills ? job.required_skills.slice(0, 4) : [];
+            const hasMoreSkills = job.required_skills && job.required_skills.length > 4;
+            
+            const createdDate = new Date(job.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            return `
+                <div class="job-card" onclick="viewJobDetails(${job.id})">
+                    <div class="job-header">
+                        <h3 class="job-title">${job.title}</h3>
+                        <div class="job-meta">
+                            <div class="job-meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${job.location}</span>
+                            </div>
+                            <div class="job-meta-item">
+                                <i class="fas fa-briefcase"></i>
+                                <span>${jobTypeText}</span>
+                            </div>
+                            <div class="job-meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>${job.required_experience_years || 0}+ years</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="job-skills">
+                        ${skills.map(skill => `<span class="job-skill">${skill}</span>`).join('')}
+                        ${hasMoreSkills ? `<span class="job-skill">+${job.required_skills.length - 4} more</span>` : ''}
+                    </div>
+                    
+                    <div class="job-description">
+                        ${job.description || 'No description provided.'}
+                    </div>
+                    
+                    <div class="job-footer">
+                        <div class="job-date">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            ${createdDate}
+                        </div>
+                        <div class="job-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); editJob(${job.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn primary" onclick="event.stopPropagation(); matchCandidates(${job.id})">
+                                <i class="fas fa-users"></i>
+                                Match
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+            const pageNumbers = document.getElementById('pageNumbers');
+            
+            let paginationHTML = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const isActive = i === currentPage;
+                paginationHTML += `
+                    <button class="pagination-btn ${isActive ? 'active' : ''}" 
+                            onclick="goToPage(${i})">${i}</button>
+                `;
+            }
+            
+            pageNumbers.innerHTML = paginationHTML;
+            
+            // Update prev/next buttons
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        // Pagination functions
+        function changePage(direction) {
+            const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+            const newPage = currentPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderJobs();
+            }
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderJobs();
+        }
+
+        // Event handlers
+        function viewJobDetails(jobId) {
+            // Navigate to job details page
+            window.location.href = `/job-details/${jobId}/`;
+        }
+
+        function editJob(jobId) {
+            // Navigate to edit job page
+            window.location.href = `/edit-job/${jobId}/`;
+        }
+
+        function matchCandidates(jobId) {
+            // Navigate to match candidates page
+            window.location.href = `/match-cv/?job_id=${jobId}`;
+        }
+
+        function showError(message) {
+            // Show error message (you can implement a toast notification here)
+            alert(message);
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchQuery = this.value.trim();
+                    filterJobs();
+                }, 300);
+            });
+
+            // Filter tags
+            const filterTags = document.querySelectorAll('.filter-tag');
+            filterTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    // Remove active class from all tags
+                    filterTags.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tag
+                    this.classList.add('active');
+                    
+                    currentFilter = this.dataset.filter;
+                    filterJobs();
+                });
+            });
+
+            // Load initial data
+            loadJobs();
+        });
+    </script>
+</body>
+</html>

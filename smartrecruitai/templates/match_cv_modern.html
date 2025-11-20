@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match CV - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom styles for this template */
+        .match-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .match-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .selection-panel,
+        .upload-panel {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .panel-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+        
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: var(--space-4);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            font-size: 1rem;
+            transition: all var(--transition);
+            background: white;
+            margin-bottom: var(--space-4);
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .job-details {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        
+        .job-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .job-detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .job-detail-label {
+            font-weight: 500;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+        }
+        
+        .job-detail-value {
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-xl);
+            padding: var(--space-8);
+            text-align: center;
+            transition: all var(--transition);
+            cursor: pointer;
+            background: var(--gray-50);
+            margin-bottom: var(--space-4);
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-400);
+            background: var(--primary-50);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary-500);
+            background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-400);
+            margin-bottom: var(--space-4);
+        }
+        
+        .upload-text {
+            margin-bottom: var(--space-4);
+        }
+        
+        .upload-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .upload-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-button {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+            padding: var(--space-3) var(--space-6);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .upload-button:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .match-button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary-500), var(--secondary-600));
+            color: white;
+            padding: var(--space-4) var(--space-8);
+            border: none;
+            border-radius: var(--radius-xl);
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            box-shadow: var(--shadow-lg);
+            margin-top: var(--space-6);
+        }
+        
+        .match-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--secondary-600), var(--secondary-700));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .match-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Enhanced Progress Section */
+        .loading-section {
+            background: rgba(255, 255, 255, 0.98);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-2xl);
+            margin-bottom: var(--space-8);
+        }
+        
+        .progress-container {
+            text-align: center;
+        }
+        
+        .progress-header {
+            margin-bottom: var(--space-8);
+        }
+        
+        .progress-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .progress-header p {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+            position: relative;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gray-200);
+            z-index: 1;
+        }
+        
+        .progress-line-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            transition: width var(--transition-slow);
+            width: 0%;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--gray-500);
+            transition: all var(--transition);
+            border: 2px solid white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .step-circle.active {
+            background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+            color: white;
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .step-circle.completed {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            text-align: center;
+            max-width: 100px;
+        }
+        
+        .step-label.active {
+            color: var(--primary-600);
+            font-weight: 600;
+        }
+        
+        .step-label.completed {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .progress-bar-container {
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: var(--space-4);
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            border-radius: var(--radius-full);
+            transition: width var(--transition-slow);
+            width: 0%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer-progress 2s infinite;
+        }
+        
+        @keyframes shimmer-progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-message {
+            font-size: 1rem;
+            color: var(--gray-700);
+            font-weight: 500;
+            margin-bottom: var(--space-6);
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-4);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Enhanced Results Section */
+        .result-section {
+            background: rgba(255, 255, 255, 0.98);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        .match-card {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .score-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: var(--space-4);
+            position: relative;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition);
+        }
+        
+        .score-circle:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+            z-index: -1;
+        }
+        
+        .score-circle.score-poor {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+        }
+        
+        .score-circle.score-fair {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+        
+        .score-circle.score-good {
+            background: linear-gradient(135deg, var(--info), #1e40af);
+        }
+        
+        .score-circle.score-excellent {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        
+        .score-label {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+        
+        .score-item {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            text-align: center;
+            transition: all var(--transition);
+        }
+        
+        .score-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-200);
+        }
+        
+        .score-item-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: var(--space-2);
+            font-weight: 500;
+        }
+        
+        .score-item-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        /* Professional Links Enhancement */
+        .professional-links {
+            background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+            border: 1px solid var(--primary-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .professional-links h3 {
+            color: var(--gray-900);
+            margin-bottom: var(--space-4);
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-3);
+        }
+        
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            background: white;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            color: var(--gray-700);
+            transition: all var(--transition);
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .link-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-300);
+            color: var(--primary-600);
+        }
+        
+        .link-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-lg);
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .github-icon { background: linear-gradient(135deg, #333, #555); }
+        .linkedin-icon { background: linear-gradient(135deg, #0077b5, #005885); }
+        .gitlab-icon { background: linear-gradient(135deg, #fc6d26, #e74c3c); }
+        .portfolio-icon { background: linear-gradient(135deg, var(--primary-500), var(--secondary-500)); }
+        
+        .link-text {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .link-type {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .no-links {
+            text-align: center;
+            color: var(--gray-500);
+            font-style: italic;
+            padding: var(--space-4);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+        }
+        
+        .explanation-section {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .explanation-section h3 {
+            color: var(--gray-900);
+            margin-bottom: var(--space-4);
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .explanation-text {
+            color: var(--gray-700);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .strengths-gaps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-6);
+        }
+        
+        .strengths,
+        .gaps {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+        }
+        
+        .strengths h4,
+        .gaps h4 {
+            color: var(--gray-900);
+            margin-bottom: var(--space-4);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .strengths ul,
+        .gaps ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .strengths li,
+        .gaps li {
+            padding: var(--space-2) 0;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            position: relative;
+            padding-left: var(--space-6);
+        }
+        
+        .strengths li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .gaps li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--warning);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .match-layout {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .scores-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .strengths-gaps {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .progress-steps {
+                flex-wrap: wrap;
+                gap: var(--space-4);
+            }
+            
+            .step-label {
+                max-width: 80px;
+                font-size: 0.625rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-search fa-3x mb-4"></i>
+                </div>
+                <h1>Match CV to Job</h1>
+                <p>AI-powered candidate matching with detailed analysis</p>
+                
+                <!-- Navigation -->
+                <nav class="nav-links">
+                    <a href="/create-job/" class="nav-link">
+                        <i class="fas fa-plus-circle mr-2"></i>Create Job
+                    </a>
+                    <a href="/list-jobs/" class="nav-link">
+                        <i class="fas fa-list mr-2"></i>List Jobs
+                    </a>
+                    <a href="/match-cv/" class="nav-link">
+                        <i class="fas fa-search mr-2"></i>Match CV
+                    </a>
+                    <a href="/upload-cv/" class="nav-link">
+                        <i class="fas fa-upload mr-2"></i>Upload CV
+                    </a>
+                    <a href="/admin/" class="nav-link">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container match-container">
+        <div class="glass-card">
+            <!-- Selection and Upload Panels -->
+            <div class="match-layout">
+                <!-- Job Selection Panel -->
+                <div class="selection-panel">
+                    <div class="panel-header">
+                        <div class="panel-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Select Job Position</h2>
+                            <p class="text-sm text-gray-600">Choose the role to match against</p>
+                        </div>
+                    </div>
+                    
+                    <select id="jobOffer" class="form-select">
+                        <option value="">Select a job offer...</option>
+                    </select>
+                    
+                    <div id="jobDetails" class="job-details" style="display: none;">
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Title</span>
+                            <span class="job-detail-value" id="jobTitle">-</span>
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Location</span>
+                            <span class="job-detail-value" id="jobLocation">-</span>
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Type</span>
+                            <span class="job-detail-value" id="jobType">-</span>
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Experience</span>
+                            <span class="job-detail-value" id="jobExperience">-</span>
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="job-detail-label">Salary</span>
+                            <span class="job-detail-value" id="jobSalary">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CV Upload Panel -->
+                <div class="upload-panel">
+                    <div class="panel-header">
+                        <div class="panel-icon">
+                            <i class="fas fa-file-upload"></i>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Upload Candidate CV</h2>
+                            <p class="text-sm text-gray-600">PDF, DOCX, DOC, or TXT files</p>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">
+                            <h3 class="upload-title">Drop CV here</h3>
+                            <p class="upload-description">or click to browse</p>
+                        </div>
+                        <button class="upload-button">
+                            <i class="fas fa-folder-open"></i>
+                            Choose File
+                        </button>
+                        <input type="file" id="cvFile" class="file-input" accept=".pdf,.docx,.doc,.txt">
+                    </div>
+                    
+                    <div id="fileInfo" class="hidden">
+                        <div class="alert alert-info">
+                            <i class="fas fa-file-alt mr-2"></i>
+                            <span id="fileName"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Button -->
+            <button id="matchButton" class="match-button" disabled>
+                <i class="fas fa-magic"></i>
+                <span>Start AI Matching</span>
+            </button>
+
+            <!-- Loading Section -->
+            <div id="loadingSection" class="loading-section" style="display: none;">
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <h3>🤖 Analyzing CV Match</h3>
+                        <p>Our AI is processing and analyzing the candidate's qualifications</p>
+                    </div>
+                    
+                    <div class="progress-steps">
+                        <div class="progress-line">
+                            <div class="progress-line-fill" id="progressLineFill"></div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-circle" id="step1">1</div>
+                            <div class="step-label" id="step1Label">Upload CV</div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-circle" id="step2">2</div>
+                            <div class="step-label" id="step2Label">Extract Data</div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-circle" id="step3">3</div>
+                            <div class="step-label" id="step3Label">Skills Analysis</div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-circle" id="step4">4</div>
+                            <div class="step-label" id="step4Label">AI Matching</div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-circle" id="step5">5</div>
+                            <div class="step-label" id="step5Label">Generate Results</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                    </div>
+                    
+                    <div class="progress-message" id="progressMessage">Initializing analysis...</div>
+                    
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // State management
+        let selectedJob = null;
+        let selectedFile = null;
+        let jobOffers = [];
+
+        // DOM elements
+        const jobOfferSelect = document.getElementById('jobOffer');
+        const jobDetails = document.getElementById('jobDetails');
+        const uploadArea = document.getElementById('uploadArea');
+        const cvFileInput = document.getElementById('cvFile');
+        const matchButton = document.getElementById('matchButton');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultSection = document.getElementById('resultSection');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobOffers();
+            setupEventListeners();
+        });
+
+        // Load job offers
+        async function loadJobOffers() {
+            try {
+                const response = await fetch('/api/job-offers/');
+                jobOffers = await response.json();
+                
+                jobOffers.forEach(job => {
+                    const option = document.createElement('option');
+                    option.value = job.id;
+                    option.textContent = `${job.title} - ${job.location}`;
+                    jobOfferSelect.appendChild(option);
+                });
+            } catch (error) {
+                showError('Failed to load job offers');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Job selection
+            jobOfferSelect.addEventListener('change', handleJobSelection);
+            
+            // File upload
+            uploadArea.addEventListener('click', () => cvFileInput.click());
+            cvFileInput.addEventListener('change', handleFileSelection);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+            
+            // Match button
+            matchButton.addEventListener('click', startMatching);
+        }
+
+        // Handle job selection
+        function handleJobSelection() {
+            const jobId = jobOfferSelect.value;
+            if (!jobId) {
+                selectedJob = null;
+                jobDetails.style.display = 'none';
+                updateMatchButton();
+                return;
+            }
+
+            selectedJob = jobOffers.find(job => job.id == jobId);
+            if (selectedJob) {
+                displayJobDetails(selectedJob);
+                updateMatchButton();
+            }
+        }
+
+        // Display job details
+        function displayJobDetails(job) {
+            document.getElementById('jobTitle').textContent = job.title;
+            document.getElementById('jobLocation').textContent = job.location;
+            document.getElementById('jobType').textContent = job.job_type || 'Not specified';
+            document.getElementById('jobExperience').textContent = `${job.required_experience_years || 0}+ years`;
+            
+            const salary = job.salary_min && job.salary_max 
+                ? `${job.currency} ${job.salary_min} - ${job.salary_max}`
+                : job.salary_min 
+                    ? `${job.currency} ${job.salary_min}+`
+                    : 'Competitive';
+            document.getElementById('jobSalary').textContent = salary;
+            
+            jobDetails.style.display = 'block';
+        }
+
+        // Handle file selection
+        function handleFileSelection(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        // Handle file
+        function handleFile(file) {
+            const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'text/plain'];
+            
+            if (!validTypes.includes(file.type)) {
+                showError('Please select a valid file type (PDF, DOCX, DOC, or TXT)');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                showError('File size must be less than 10MB');
+                return;
+            }
+
+            selectedFile = file;
+            displayFileInfo(file);
+            updateMatchButton();
+        }
+
+        // Display file info
+        function displayFileInfo(file) {
+            document.getElementById('fileName').textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+            document.getElementById('fileInfo').classList.remove('hidden');
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Update match button
+        function updateMatchButton() {
+            matchButton.disabled = !(selectedJob && selectedFile);
+        }
+
+        // Start matching
+        async function startMatching() {
+            if (!selectedJob || !selectedFile) {
+                showError('Please select a job and upload a CV');
+                return;
+            }
+
+            // Show loading section
+            loadingSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            matchButton.disabled = true;
+
+            try {
+                // Simulate progress steps
+                await updateProgress(1, 'Uploading CV file...', 20);
+                await sleep(1000);
+                
+                await updateProgress(2, 'Extracting text and skills from CV...', 40);
+                await sleep(1500);
+                
+                await updateProgress(3, 'Analyzing skills and experience...', 60);
+                await sleep(1200);
+                
+                await updateProgress(4, 'Running AI matching algorithms...', 80);
+                await sleep(1800);
+                
+                await updateProgress(5, 'Generating detailed results...', 100);
+                await sleep(800);
+
+                // Get actual match results
+                const matchResult = await getMatchResults();
+                
+                // Display results
+                displayMatchResults(matchResult);
+                
+            } catch (error) {
+                showError('Matching failed: ' + error.message);
+            } finally {
+                loadingSection.style.display = 'none';
+                matchButton.disabled = false;
+            }
+        }
+
+        // Update progress
+        function updateProgress(step, message, progress) {
+            // Update step circles
+            for (let i = 1; i <= 5; i++) {
+                const stepCircle = document.getElementById(`step${i}`);
+                const stepLabel = document.getElementById(`step${i}Label`);
+                
+                if (i < step) {
+                    stepCircle.className = 'step-circle completed';
+                    stepCircle.innerHTML = '<i class="fas fa-check"></i>';
+                    stepLabel.className = 'step-label completed';
+                } else if (i === step) {
+                    stepCircle.className = 'step-circle active';
+                    stepCircle.textContent = i;
+                    stepLabel.className = 'step-label active';
+                } else {
+                    stepCircle.className = 'step-circle';
+                    stepCircle.textContent = i;
+                    stepLabel.className = 'step-label';
+                }
+            }
+            
+            // Update progress bars
+            document.getElementById('progressLineFill').style.width = `${progress}%`;
+            document.getElementById('progressBarFill').style.width = `${progress}%`;
+            document.getElementById('progressMessage').textContent = message;
+        }
+
+        // Get match results
+        async function getMatchResults() {
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            const response = await fetch(`/api/job-offers/${selectedJob.id}/find_matches/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to get match results');
+            }
+            
+            const data = await response.json();
+            return data.matches && data.matches.length > 0 ? data.matches[0] : null;
+        }
+
+        // Display match results
+        function displayMatchResults(match) {
+            if (!match) {
+                showError('No match results available');
+                return;
+            }
+
+            const score = Math.round(match.overall_score || 0);
+            let scoreClass = 'score-poor';
+            let scoreLabel = 'Needs Improvement';
+            
+            if (score >= 80) {
+                scoreClass = 'score-excellent';
+                scoreLabel = 'Excellent Match';
+            } else if (score >= 60) {
+                scoreClass = 'score-good';
+                scoreLabel = 'Good Match';
+            } else if (score >= 40) {
+                scoreClass = 'score-fair';
+                scoreLabel = 'Fair Match';
+            }
+
+            const techScore = Math.round(match.technical_skill_score || 0);
+            const expScore = Math.round(match.experience_score || 0);
+            const eduScore = Math.round(match.education_score || 0);
+            const softScore = Math.round(match.soft_skill_score || 0);
+
+            const explanation = match.match_explanation || 'No explanation available.';
+            const strengths = match.strengths && match.strengths.length > 0 
+                ? match.strengths.map(s => `<li>${escapeHtml(s)}</li>`).join('')
+                : '<li>No specific strengths identified.</li>';
+            const gaps = match.gaps && match.gaps.length > 0
+                ? match.gaps.map(g => `<li>${escapeHtml(g)}</li>`).join('')
+                : '<li>No significant gaps identified.</li>';
+
+            // Generate professional links HTML
+            const professionalLinksHTML = generateProfessionalLinksHTML(match.professional_links || {});
+
+            resultSection.innerHTML = `
+                <div class="match-card">
+                    <div class="score-display">
+                        <div class="score-circle ${scoreClass}">
+                            <span>${score}%</span>
+                        </div>
+                        <div class="score-label">${scoreLabel}</div>
+                    </div>
+                    
+                    <div class="scores-grid">
+                        <div class="score-item">
+                            <div class="score-item-label">Technical Skills</div>
+                            <div class="score-item-value">${techScore}%</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-item-label">Experience</div>
+                            <div class="score-item-value">${expScore}%</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-item-label">Education</div>
+                            <div class="score-item-value">${eduScore}%</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-item-label">Soft Skills</div>
+                            <div class="score-item-value">${softScore}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="professional-links">
+                        <h3><i class="fas fa-link mr-2"></i>Professional Links</h3>
+                        ${professionalLinksHTML}
+                    </div>
+                    
+                    <div class="explanation-section">
+                        <h3><i class="fas fa-brain mr-2"></i>AI Analysis</h3>
+                        <div class="explanation-text">${escapeHtml(explanation)}</div>
+                    </div>
+                    
+                    <div class="strengths-gaps">
+                        <div class="strengths">
+                            <h4><i class="fas fa-star mr-2"></i>Strengths</h4>
+                            <ul>${strengths}</ul>
+                        </div>
+                        <div class="gaps">
+                            <h4><i class="fas fa-exclamation-triangle mr-2"></i>Gaps</h4>
+                            <ul>${gaps}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultSection.style.display = 'block';
+        }
+
+        // Generate professional links HTML
+        function generateProfessionalLinksHTML(professionalLinks) {
+            const links = [];
+            
+            ['github', 'linkedin', 'gitlab', 'portfolio'].forEach(type => {
+                if (professionalLinks[type] && professionalLinks[type].length > 0) {
+                    professionalLinks[type].forEach(link => {
+                        links.push(`
+                            <a href="${link}" target="_blank" class="link-item">
+                                <div class="link-icon ${type}-icon">
+                                    ${type === 'github' ? 'G' : type === 'linkedin' ? 'in' : type === 'gitlab' ? 'G' : '🌐'}
+                                </div>
+                                <div class="link-text">
+                                    <div>${type.charAt(0).toUpperCase() + type.slice(1)} Profile</div>
+                                    <div class="link-type">${type === 'portfolio' ? 'Portfolio' : type}</div>
+                                </div>
+                            </a>
+                        `);
+                    });
+                }
+            });
+            
+            return links.length > 0 
+                ? `<div class="links-grid">${links.join('')}</div>`
+                : '<div class="no-links">No professional links found in CV</div>';
+        }
+
+        // Utility functions
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showError(message) {
+            alert(message); // You can replace this with a better notification system
+        }
+    </script>
+</body>
+</html>

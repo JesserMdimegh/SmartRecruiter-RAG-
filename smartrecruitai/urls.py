@@ -7,7 +7,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CandidateViewSet, JobOfferViewSet, MatchViewSet,
     ConversationViewSet, CVViewSet, cv_upload_page,
-    create_job_offer_page, list_job_offers_page, match_cv_page
+    create_job_offer_page, list_job_offers_page, match_cv_page,
+    cv_ranking_page
 )
 
 router = DefaultRouter()
@@ -23,5 +24,6 @@ urlpatterns = [
     path('create-job/', create_job_offer_page, name='create_job'),
     path('list-jobs/', list_job_offers_page, name='list_jobs'),
     path('match-cv/', match_cv_page, name='match_cv'),
+    path('rank-cvs/', cv_ranking_page, name='cv_ranking'),
 ]
 

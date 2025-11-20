@@ -34,8 +34,13 @@ class Candidate(TimestampedModel):
     email = models.EmailField(blank=True, help_text="Will be extracted from CV")
     phone_number = models.CharField(max_length=20, blank=True)
     location = models.CharField(max_length=200, blank=True)
+    
+    # Professional links (enhanced to support multiple links)
     linkedin_url = models.URLField(blank=True)
     github_url = models.URLField(blank=True)
+    gitlab_url = models.URLField(blank=True)
+    portfolio_urls = models.JSONField(default=list, help_text="Portfolio and personal website URLs")
+    professional_links = models.JSONField(default=dict, help_text="All extracted professional links organized by type")
     
     # Extracted skills and experiences
     technical_skills = models.JSONField(default=list, help_text="Technical skills extracted from CV")

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CV - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom styles for this template */
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .upload-area {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-12) var(--space-8);
+            text-align: center;
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+            opacity: 0;
+            transition: opacity var(--transition);
+            pointer-events: none;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-400);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        .upload-area:hover::before {
+            opacity: 1;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary-500);
+            background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--primary-400);
+            margin-bottom: var(--space-6);
+            transition: all var(--transition);
+        }
+        
+        .upload-area:hover .upload-icon {
+            color: var(--primary-500);
+            transform: scale(1.1);
+        }
+        
+        .upload-text {
+            margin-bottom: var(--space-4);
+        }
+        
+        .upload-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .upload-description {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-button {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+            padding: var(--space-4) var(--space-8);
+            border: none;
+            border-radius: var(--radius-xl);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .upload-button:hover {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .file-list {
+            margin-top: var(--space-8);
+        }
+        
+        .file-item {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            transition: all var(--transition);
+            animation: slideInUp var(--transition);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .file-item:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-200);
+        }
+        
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-100);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-600);
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-1);
+        }
+        
+        .file-details {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .file-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .status-icon.uploading {
+            background: var(--warning);
+            color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        .status-icon.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .status-icon.error {
+            background: var(--error);
+            color: white;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .remove-file {
+            padding: var(--space-2);
+            background: transparent;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .remove-file:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: var(--space-2);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            border-radius: var(--radius-full);
+            transition: width var(--transition);
+            width: 0%;
+        }
+        
+        .features-section {
+            margin-top: var(--space-12);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            text-align: center;
+            transition: all var(--transition);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin: 0 auto var(--space-4);
+        }
+        
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .feature-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .batch-upload {
+            background: linear-gradient(135deg, var(--secondary-50), var(--primary-50));
+            border: 2px solid var(--secondary-200);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            margin-top: var(--space-8);
+        }
+        
+        .batch-upload-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .batch-upload-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .batch-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+        
+        .supported-formats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+        }
+        
+        .format-badge {
+            padding: var(--space-1) var(--space-3);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        
+        .tips-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            margin-top: var(--space-8);
+        }
+        
+        .tips-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .tips-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tips-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            margin-bottom: var(--space-3);
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .tips-list li i {
+            color: var(--primary-500);
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .upload-area {
+                padding: var(--space-8) var(--space-4);
+            }
+            
+            .upload-icon {
+                font-size: 3rem;
+            }
+            
+            .upload-title {
+                font-size: 1.25rem;
+            }
+            
+            .features-section {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .batch-actions {
+                flex-direction: column;
+            }
+            
+            .batch-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i class="fas fa-file-upload fa-3x mb-4"></i>
+                </div>
+                <h1>Upload CVs</h1>
+                <p>Upload candidate CVs for AI-powered analysis and matching</p>
+                
+                <!-- Navigation -->
+                <nav class="nav-links">
+                    <a href="/create-job/" class="nav-link">
+                        <i class="fas fa-plus-circle mr-2"></i>Create Job
+                    </a>
+                    <a href="/list-jobs/" class="nav-link">
+                        <i class="fas fa-list mr-2"></i>List Jobs
+                    </a>
+                    <a href="/match-cv/" class="nav-link">
+                        <i class="fas fa-search mr-2"></i>Match CV
+                    </a>
+                    <a href="/upload-cv/" class="nav-link">
+                        <i class="fas fa-upload mr-2"></i>Upload CV
+                    </a>
+                    <a href="/admin/" class="nav-link">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container upload-container">
+        <div class="glass-card">
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-text">
+                    <h3 class="upload-title">Drop your CVs here</h3>
+                    <p class="upload-description">
+                        or click to browse from your computer
+                    </p>
+                </div>
+                <button class="upload-button">
+                    <i class="fas fa-folder-open"></i>
+                    Choose Files
+                </button>
+                <input type="file" 
+                       id="fileInput" 
+                       class="file-input" 
+                       multiple 
+                       accept=".pdf,.docx,.doc,.txt">
+                
+                <div class="supported-formats">
+                    <span class="format-badge">PDF</span>
+                    <span class="format-badge">DOCX</span>
+                    <span class="format-badge">DOC</span>
+                    <span class="format-badge">TXT</span>
+                </div>
+            </div>
+
+            <!-- File List -->
+            <div id="fileList" class="file-list" style="display: none;">
+                <!-- Files will be added here dynamically -->
+            </div>
+
+            <!-- Batch Upload Actions -->
+            <div class="batch-upload" id="batchActions" style="display: none;">
+                <div class="batch-upload-header">
+                    <div class="batch-upload-title">
+                        <i class="fas fa-layer-group"></i>
+                        Batch Upload
+                    </div>
+                    <div class="status-badge status-info" id="batchStatus">
+                        <span id="batchCount">0</span> files ready
+                    </div>
+                </div>
+                <div class="batch-actions">
+                    <button class="btn btn-secondary" onclick="clearAllFiles()">
+                        <i class="fas fa-times mr-2"></i>Clear All
+                    </button>
+                    <button class="btn btn-primary" onclick="uploadAllFiles()">
+                        <i class="fas fa-upload mr-2"></i>Upload All Files
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="feature-title">AI-Powered Analysis</h3>
+                    <p class="feature-description">
+                        Our advanced NLP extracts skills, experience, and qualifications from CVs automatically
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="feature-title">Instant Processing</h3>
+                    <p class="feature-description">
+                        Get immediate results with real-time CV parsing and candidate profile generation
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Smart Matching</h3>
+                    <p class="feature-description">
+                        Automatically match candidates to job openings with intelligent compatibility scoring
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Secure & Private</h3>
+                    <p class="feature-description">
+                        Your data is encrypted and processed securely with enterprise-grade protection
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="tips-section">
+                <h3 class="tips-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Tips for Better CV Processing
+                </h3>
+                <ul class="tips-list">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Use clear, well-formatted CVs with standard section headings (Experience, Education, Skills)</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Ensure PDF files are text-based (not scanned images) for optimal extraction</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Include technical skills, certifications, and professional links (LinkedIn, GitHub) for better matching</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <span>Upload multiple CVs at once to save time and process candidates in batches</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // State management
+        let uploadedFiles = new Map();
+        let uploadQueue = [];
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const batchActions = document.getElementById('batchActions');
+        const batchCount = document.getElementById('batchCount');
+
+        // Event listeners
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop events
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // Handle file selection
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+
+        // Handle files
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (!uploadedFiles.has(file.name)) {
+                    addFileToList(file);
+                }
+            });
+            updateBatchActions();
+        }
+
+        // Add file to list
+        function addFileToList(file) {
+            const fileId = Date.now() + Math.random();
+            uploadedFiles.set(file.name, { file, id: fileId, status: 'pending' });
+
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.id = `file-${fileId}`;
+            
+            const fileIcon = getFileIcon(file.name);
+            const fileSize = formatFileSize(file.size);
+            
+            fileItem.innerHTML = `
+                <div class="file-icon">
+                    <i class="fas ${fileIcon}"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-details">${fileSize}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-${fileId}"></div>
+                    </div>
+                </div>
+                <div class="file-status">
+                    <div class="status-icon pending" id="status-${fileId}">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <button class="remove-file" onclick="removeFile('${file.name}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            fileList.appendChild(fileItem);
+            fileList.style.display = 'block';
+        }
+
+        // Get file icon based on extension
+        function getFileIcon(filename) {
+            const extension = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': 'fa-file-pdf',
+                'docx': 'fa-file-word',
+                'doc': 'fa-file-word',
+                'txt': 'fa-file-alt'
+            };
+            return iconMap[extension] || 'fa-file';
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Remove file
+        function removeFile(filename) {
+            const fileData = uploadedFiles.get(filename);
+            if (fileData) {
+                const fileItem = document.getElementById(`file-${fileData.id}`);
+                if (fileItem) {
+                    fileItem.remove();
+                }
+                uploadedFiles.delete(filename);
+                updateBatchActions();
+            }
+        }
+
+        // Clear all files
+        function clearAllFiles() {
+            if (confirm('Are you sure you want to remove all files?')) {
+                uploadedFiles.clear();
+                fileList.innerHTML = '';
+                fileList.style.display = 'none';
+                updateBatchActions();
+            }
+        }
+
+        // Update batch actions
+        function updateBatchActions() {
+            const fileCount = uploadedFiles.size;
+            batchCount.textContent = fileCount;
+            
+            if (fileCount > 0) {
+                batchActions.style.display = 'block';
+            } else {
+                batchActions.style.display = 'none';
+            }
+        }
+
+        // Upload all files
+        async function uploadAllFiles() {
+            if (uploadedFiles.size === 0) return;
+
+            for (const [filename, fileData] of uploadedFiles) {
+                if (fileData.status === 'pending') {
+                    await uploadFile(filename, fileData);
+                }
+            }
+        }
+
+        // Upload single file
+        async function uploadFile(filename, fileData) {
+            const { file, id } = fileData;
+            const statusIcon = document.getElementById(`status-${id}`);
+            const progressBar = document.getElementById(`progress-${id}`);
+
+            try {
+                // Update status to uploading
+                fileData.status = 'uploading';
+                statusIcon.className = 'status-icon uploading';
+                statusIcon.innerHTML = '<i class="fas fa-spinner"></i>';
+
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 30;
+                    if (progress > 90) progress = 90;
+                    progressBar.style.width = `${progress}%`;
+                }, 200);
+
+                // Upload file
+                const response = await fetch('/api/candidates/upload_cv_direct/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+
+                if (response.ok) {
+                    // Success
+                    fileData.status = 'success';
+                    statusIcon.className = 'status-icon success';
+                    statusIcon.innerHTML = '<i class="fas fa-check"></i>';
+                } else {
+                    // Error
+                    throw new Error('Upload failed');
+                }
+
+            } catch (error) {
+                // Error
+                fileData.status = 'error';
+                statusIcon.className = 'status-icon error';
+                statusIcon.innerHTML = '<i class="fas fa-times"></i>';
+                console.error('Upload error:', error);
+            }
+        }
+
+        // CSRF token helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    </script>
+</body>
+</html>

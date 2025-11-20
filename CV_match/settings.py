@@ -150,11 +150,11 @@ EMBEDDING_DIMENSION = 768
 
 # Matching Weights
 MATCHING_WEIGHTS = {
-      'similarity': 0.4,
-      'technical': 0.4,
+      'similarity': 0.35,
+      'technical': 0.35,
       'experience': 0.15,
       'education': 0.05,
-      'soft_skills': 0.0,
+      'soft_skills': 0.1,
   }
 
 # CORS Configuration

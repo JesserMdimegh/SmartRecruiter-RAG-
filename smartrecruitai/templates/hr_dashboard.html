@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - SmartRecruitAI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern UI Framework -->
+    <link rel="stylesheet" href="/static/smartrecruitai/css/modern-ui-framework.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Dashboard Layout */
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-700) 0%, var(--primary-900) 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-profile {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-400), var(--secondary-600));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            flex: 1;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .nav-menu {
+            padding: var(--space-4) 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            position: relative;
+            margin: var(--space-1) var(--space-3);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--secondary-400);
+            transform: scaleY(0);
+            transition: transform var(--transition);
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .nav-text {
+            transition: opacity var(--transition);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .nav-badge {
+            background: var(--error);
+            color: white;
+            font-size: 0.625rem;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            margin-left: auto;
+            transition: opacity var(--transition);
+        }
+        
+        .sidebar.collapsed .nav-badge {
+            opacity: 0;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            transition: margin-left var(--transition);
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+        
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: var(--space-4) var(--space-6);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .menu-toggle {
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+        
+        .menu-toggle:hover {
+            background: var(--gray-100);
+            color: var(--primary-600);
+        }
+        
+        .search-bar {
+            position: relative;
+            width: 400px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-xl);
+            font-size: 0.875rem;
+            transition: all var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .notification-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition);
+        }
+        
+        .notification-btn:hover {
+            background: var(--gray-100);
+            color: var(--primary-600);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: var(--error);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: var(--space-6);
+        }
+        
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .page-subtitle {
+            color: var(--gray-600);
+            margin-bottom: var(--space-6);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+            transform: scaleX(0);
+            transition: transform var(--transition);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .stat-icon.blue { background: linear-gradient(135deg, var(--info), #1e40af); }
+        .stat-icon.green { background: linear-gradient(135deg, var(--success), #059669); }
+        .stat-icon.purple { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); }
+        .stat-icon.orange { background: linear-gradient(135deg, var(--warning), #d97706); }
+        
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--error); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+        }
+        
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .chart-options {
+            display: flex;
+            gap: var(--space-2);
+        }
+        
+        .chart-option {
+            padding: var(--space-2) var(--space-3);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .chart-option:hover,
+        .chart-option.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+        
+        /* Recent Activity */
+        .activity-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-4);
+            padding: var(--space-4) 0;
+            border-bottom: 1px solid var(--gray-100);
+            transition: all var(--transition);
+        }
+        
+        .activity-item:hover {
+            background: var(--gray-50);
+            margin: 0 calc(-1 * var(--space-6));
+            padding-left: var(--space-6);
+            padding-right: var(--space-6);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.upload { background: linear-gradient(135deg, var(--info), #1e40af); }
+        .activity-icon.match { background: linear-gradient(135deg, var(--success), #059669); }
+        .activity-icon.create { background: linear-gradient(135deg, var(--accent-purple), #7c3aed); }
+        .activity-icon.edit { background: linear-gradient(135deg, var(--warning), #d97706); }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-1);
+        }
+        
+        .activity-description {
+            color: var(--gray-600);
+            font-size: 0.75rem;
+            margin-bottom: var(--space-1);
+        }
+        
+        .activity-time {
+            color: var(--gray-500);
+            font-size: 0.625rem;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-8);
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: var(--space-6);
+            border: 2px solid var(--gray-200);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .action-card:hover {
+            border-color: var(--primary-400);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: var(--primary-600);
+        }
+        
+        .action-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-100), var(--secondary-100));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-600);
+            margin: 0 auto var(--space-4);
+        }
+        
+        .action-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: var(--space-2);
+        }
+        
+        .action-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+        }
+        
+        /* Animations */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-in {
+            animation: slideInFromLeft var(--transition) ease-out;
+        }
+        
+        .stat-card {
+            animation: fadeInUp var(--transition) ease-out;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SR</div>
+                <div class="sidebar-title">SmartRecruitAI</div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar">JD</div>
+                <div class="user-info">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-role">HR Manager</div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="#dashboard" class="nav-link active">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#jobs" class="nav-link">
+                        <i class="fas fa-briefcase nav-icon"></i>
+                        <span class="nav-text">Job Listings</span>
+                        <span class="nav-badge">12</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#candidates" class="nav-link">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Candidates</span>
+                        <span class="nav-badge">48</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#matching" class="nav-link">
+                        <i class="fas fa-search nav-icon"></i>
+                        <span class="nav-text">AI Matching</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#interviews" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span class="nav-text">Interviews</span>
+                        <span class="nav-badge">5</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#analytics" class="nav-link">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#team" class="nav-link">
+                        <i class="fas fa-user-friends nav-icon"></i>
+                        <span class="nav-text">Team</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#settings" class="nav-link">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="search-bar">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search candidates, jobs, or skills...">
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </button>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <h1 class="page-title">HR Dashboard</h1>
+                <p class="page-subtitle">Welcome back! Here's what's happening with your recruitment today.</p>
+                
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card animate-in">
+                        <div class="stat-header">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">Active Job Postings</div>
+                    </div>
+                    
+                    <div class="stat-card animate-in">
+                        <div class="stat-header">
+                            <div class="stat-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>8%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">Total Candidates</div>
+                    </div>
+                    
+                    <div class="stat-card animate-in">
+                        <div class="stat-header">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>24%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value">89%</div>
+                        <div class="stat-label">Match Accuracy</div>
+                    </div>
+                    
+                    <div class="stat-card animate-in">
+                        <div class="stat-header">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-change negative">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>3%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Interviews Today</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="/create-job/" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="action-title">Create Job</div>
+                        <div class="action-description">Post a new position</div>
+                    </a>
+                    
+                    <a href="/upload-cv/" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="action-title">Upload CVs</div>
+                        <div class="action-description">Add candidate resumes</div>
+                    </a>
+                    
+                    <a href="/match-cv/" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <div class="action-title">AI Matching</div>
+                        <div class="action-description">Find best matches</div>
+                    </a>
+                    
+                    <a href="#analytics" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="action-title">View Reports</div>
+                        <div class="action-description">Analytics & insights</div>
+                    </a>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Recruitment Overview</h3>
+                            <div class="chart-options">
+                                <button class="chart-option active">Week</button>
+                                <button class="chart-option">Month</button>
+                                <button class="chart-option">Year</button>
+                            </div>
+                        </div>
+                        <canvas id="recruitmentChart" height="100"></canvas>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Job Distribution</h3>
+                        </div>
+                        <canvas id="jobDistributionChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Recent Activity</h3>
+                        <button class="chart-option">View All</button>
+                    </div>
+                    
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon upload">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">New CVs Uploaded</div>
+                                <div class="activity-description">5 new candidate resumes processed</div>
+                                <div class="activity-time">2 minutes ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon match">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">High Match Found</div>
+                                <div class="activity-description">Sarah Johnson matched 94% for Senior Developer</div>
+                                <div class="activity-time">15 minutes ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon create">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">New Job Posted</div>
+                                <div class="activity-description">Product Manager position created</div>
+                                <div class="activity-time">1 hour ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon edit">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Job Updated</div>
+                                <div class="activity-description">Frontend Developer requirements modified</div>
+                                <div class="activity-time">3 hours ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-icon match">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Interview Scheduled</div>
+                                <div class="activity-description">Technical interview with Mike Chen confirmed</div>
+                                <div class="activity-time">5 hours ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        // Mobile Sidebar Toggle
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        }
+        
+        // Navigation Active State
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Chart.js Configuration
+        const chartColors = {
+            primary: '#6366f1',
+            secondary: '#d946ef',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6'
+        };
+        
+        // Recruitment Overview Chart
+        const recruitmentCtx = document.getElementById('recruitmentChart').getContext('2d');
+        const recruitmentChart = new Chart(recruitmentCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Applications',
+                    data: [12, 19, 15, 25, 22, 30, 28],
+                    borderColor: chartColors.primary,
+                    backgroundColor: `${chartColors.primary}20`,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Matches',
+                    data: [8, 12, 10, 18, 15, 22, 20],
+                    borderColor: chartColors.success,
+                    backgroundColor: `${chartColors.success}20`,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Job Distribution Chart
+        const distributionCtx = document.getElementById('jobDistributionChart').getContext('2d');
+        const jobDistributionChart = new Chart(distributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Engineering', 'Design', 'Marketing', 'Sales', 'HR'],
+                datasets: [{
+                    data: [35, 25, 20, 15, 5],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.info
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Chart Options Toggle
+        const chartOptions = document.querySelectorAll('.chart-option');
+        chartOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const siblings = this.parentElement.querySelectorAll('.chart-option');
+                siblings.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update chart data based on selection
+                updateChartData(this.textContent);
+            });
+        });
+        
+        function updateChartData(period) {
+            // Simulate data update based on period
+            let labels, data1, data2;
+            
+            switch(period) {
+                case 'Week':
+                    labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    data1 = [12, 19, 15, 25, 22, 30, 28];
+                    data2 = [8, 12, 10, 18, 15, 22, 20];
+                    break;
+                case 'Month':
+                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                    data1 = [65, 78, 90, 81];
+                    data2 = [48, 58, 70, 65];
+                    break;
+                case 'Year':
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                    data1 = [120, 150, 180, 200, 170, 190];
+                    data2 = [90, 110, 140, 160, 130, 150];
+                    break;
+            }
+            
+            recruitmentChart.data.labels = labels;
+            recruitmentChart.data.datasets[0].data = data1;
+            recruitmentChart.data.datasets[1].data = data2;
+            recruitmentChart.update();
+        }
+        
+        // Search Functionality
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            if (query.length > 2) {
+                // Implement search logic here
+                console.log('Searching for:', query);
+            }
+        });
+        
+        // Notification System
+        const notificationBtn = document.querySelector('.notification-btn');
+        notificationBtn.addEventListener('click', function() {
+            // Implement notification panel here
+            console.log('Show notifications');
+        });
+        
+        // Activity Feed Auto-refresh
+        function refreshActivity() {
+            // Simulate real-time activity updates
+            const activityItems = document.querySelectorAll('.activity-item');
+            activityItems.forEach(item => {
+                item.style.animation = 'none';
+                setTimeout(() => {
+                    item.style.animation = '';
+                }, 10);
+            });
+        }
+        
+        // Refresh activity every 30 seconds
+        setInterval(refreshActivity, 30000);
+        
+        // Responsive Handling
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            } else {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize tooltips and other interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

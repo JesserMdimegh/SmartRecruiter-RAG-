@@ -35,19 +35,25 @@ def cv_upload_page(request):
 @ensure_csrf_cookie
 def create_job_offer_page(request):
     """Serve the create job offer page"""
-    return render(request, 'create_job_offer.html')
+    return render(request, 'create_job_offer_modern.html')
 
 
 @ensure_csrf_cookie
 def list_job_offers_page(request):
     """Serve the list job offers page"""
-    return render(request, 'list_job_offers.html')
+    return render(request, 'list_job_offers_modern.html')
 
 
 @ensure_csrf_cookie
 def match_cv_page(request):
     """Serve the match CV to job offer page"""
     return render(request, 'match_cv.html')
+
+
+@ensure_csrf_cookie
+def cv_ranking_page(request):
+    """Serve the advanced CV ranking page"""
+    return render(request, 'cv_ranking.html')
 
 
 class CandidateViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
@@ -110,12 +116,24 @@ class CandidateViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                 nlp_extractor = NLPExtractor()
                 extracted_data = nlp_extractor.extract_cv_data(cv_text)
                 
+                # Extract professional links
+                professional_links = extracted_data.get('professional_links', {})
+                
                 # Update candidate with extracted data
                 candidate.cv_text = cv_text
                 candidate.technical_skills = extracted_data.get('technical_skills', [])
                 candidate.soft_skills = extracted_data.get('soft_skills', [])
                 candidate.total_experience_years = extracted_data.get('experience_years', 0)
                 candidate.education_level = str(extracted_data.get('education', []))
+                candidate.languages = extracted_data.get('languages', [])
+                candidate.certifications = extracted_data.get('certifications', [])
+                
+                # Save professional links
+                candidate.professional_links = professional_links
+                candidate.linkedin_url = professional_links.get('linkedin', [''])[0] if professional_links.get('linkedin') else ''
+                candidate.github_url = professional_links.get('github', [''])[0] if professional_links.get('github') else ''
+                candidate.gitlab_url = professional_links.get('gitlab', [''])[0] if professional_links.get('gitlab') else ''
+                candidate.portfolio_urls = professional_links.get('portfolio', [])
                 
                 # Try to extract name and email from CV text
                 candidate.full_name = self._extract_name_from_cv(cv_text)
@@ -502,6 +520,179 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
             return Response({
                 'error': str(e),
                 'detail': 'Failed to generate matches'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=['post'])
+    def rank_candidates(self, request, pk=None):
+        """Rank multiple candidates against this job offer with detailed scoring and descriptions"""
+        try:
+            job_offer = self.get_object()
+            
+            # Get candidate IDs from request
+            candidate_ids = request.data.get('candidate_ids', [])
+            if not candidate_ids:
+                return Response({'error': 'No candidate IDs provided'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get candidates
+            candidates = Candidate.objects.filter(id__in=candidate_ids, status='active')
+            if not candidates.exists():
+                return Response({'error': 'No valid active candidates found'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Ensure job offer has an embedding
+            if not job_offer.embedding:
+                vector_matcher = VectorMatcher()
+                job_text = f"{job_offer.description} {job_offer.requirements}"
+                job_offer.embedding = vector_matcher.generate_embedding(job_text)
+                job_offer.save()
+            
+            # Initialize services
+            vector_matcher = VectorMatcher()
+            rag_engine = RAGEngine()
+            
+            ranked_candidates = []
+            errors = []
+            
+            for candidate in candidates:
+                try:
+                    # Generate embedding if missing
+                    if not candidate.embedding and candidate.cv_text:
+                        candidate.embedding = vector_matcher.generate_embedding(candidate.cv_text)
+                        candidate.save()
+                    elif not candidate.embedding:
+                        continue
+                    
+                    # Calculate similarity
+                    similarity = vector_matcher.calculate_similarity(
+                        job_offer.embedding,
+                        candidate.embedding
+                    )
+                    
+                    # Prepare data for detailed scoring
+                    candidate_data = {
+                        'technical_skills': candidate.technical_skills or [],
+                        'experience_years': candidate.total_experience_years or 0,
+                        'education_level': candidate.education_level or '',
+                        'soft_skills': candidate.soft_skills or [],
+                    }
+                    
+                    job_data = {
+                        'required_skills': job_offer.required_skills or [],
+                        'required_experience_years': job_offer.required_experience_years or 0,
+                        'required_education': job_offer.required_education or '',
+                        'required_soft_skills': request.data.get('required_soft_skills', []),
+                    }
+                    
+                    # Calculate detailed scores
+                    detailed_scores = vector_matcher.calculate_detailed_scores(candidate_data, job_data)
+                    
+                    # Get weights from settings
+                    weights = getattr(settings, 'MATCHING_WEIGHTS', None)
+                    overall_percent = vector_matcher.calculate_overall_score(similarity, detailed_scores, weights)
+                    
+                    # Add overall score to detailed_scores for RAG
+                    detailed_scores['overall_score'] = overall_percent / 100.0
+                    
+                    # Generate comprehensive explanation
+                    try:
+                        explanation = rag_engine.explain_match(candidate_data, job_data, detailed_scores)
+                    except Exception as e:
+                        explanation = f'Candidate analysis: {overall_percent:.1f}% compatibility.'
+                    
+                    # Generate strengths and gaps analysis
+                    try:
+                        analysis = vector_matcher.generate_matching_explanation(
+                            candidate_data, job_data, detailed_scores
+                        )
+                        strengths = analysis.get('strengths', [])
+                        gaps = analysis.get('gaps', [])
+                        recommendations = analysis.get('recommendations', [])
+                    except Exception as e:
+                        strengths = []
+                        gaps = []
+                        recommendations = []
+                    
+                    # Create comprehensive candidate profile
+                    candidate_profile = {
+                        'candidate_id': candidate.id,
+                        'full_name': candidate.full_name or 'Unnamed Candidate',
+                        'email': candidate.email or 'No email',
+                        'current_position': candidate.current_position or 'Not specified',
+                        'total_experience_years': candidate.total_experience_years,
+                        'technical_skills': candidate.technical_skills or [],
+                        'soft_skills': candidate.soft_skills or [],
+                        'education_level': candidate.education_level or 'Not specified',
+                        
+                        # Scoring details
+                        'overall_score': round(overall_percent, 2),
+                        'similarity_score': round(similarity * 100, 2),
+                        'technical_skill_score': round(detailed_scores.get('technical_skills', 0) * 100, 2),
+                        'experience_score': round(detailed_scores.get('experience', 0) * 100, 2),
+                        'education_score': round(detailed_scores.get('education', 0) * 100, 2),
+                        'soft_skill_score': round(detailed_scores.get('soft_skills', 0) * 100, 2),
+                        
+                        # Analysis and explanations
+                        'detailed_explanation': explanation,
+                        'strengths': strengths,
+                        'gaps': gaps,
+                        'recommendations': recommendations,
+                        
+                        # Match breakdown
+                        'skills_matched': len(set(candidate_data['technical_skills']) & set(job_data['required_skills'])),
+                        'skills_total': len(job_data['required_skills']),
+                        'soft_skills_matched': len(set(candidate_data['soft_skills']) & set(job_data.get('required_soft_skills', []))),
+                        'soft_skills_total': len(job_data.get('required_soft_skills', [])),
+                        
+                        # Experience analysis
+                        'experience_meets_requirement': candidate_data['experience_years'] >= job_data['required_experience_years'],
+                        'experience_gap': max(0, job_data['required_experience_years'] - candidate_data['experience_years']),
+                    }
+                    
+                    ranked_candidates.append(candidate_profile)
+                    
+                except Exception as e:
+                    errors.append(f"Error processing candidate {candidate.id}: {str(e)}")
+                    continue
+            
+            # Sort candidates by overall score (descending)
+            ranked_candidates.sort(key=lambda x: x['overall_score'], reverse=True)
+            
+            # Add ranking positions
+            for i, candidate in enumerate(ranked_candidates, 1):
+                candidate['rank'] = i
+                candidate['percentile'] = round((i / len(ranked_candidates)) * 100, 1)
+            
+            # Generate summary statistics
+            if ranked_candidates:
+                scores = [c['overall_score'] for c in ranked_candidates]
+                summary_stats = {
+                    'total_candidates': len(ranked_candidates),
+                    'average_score': round(sum(scores) / len(scores), 2),
+                    'highest_score': ranked_candidates[0]['overall_score'],
+                    'lowest_score': ranked_candidates[-1]['overall_score'],
+                    'median_score': round(sorted(scores)[len(scores) // 2], 2),
+                    'candidates_above_80': len([c for c in ranked_candidates if c['overall_score'] >= 80]),
+                    'candidates_above_60': len([c for c in ranked_candidates if c['overall_score'] >= 60]),
+                }
+            else:
+                summary_stats = {}
+            
+            return Response({
+                'job_offer': {
+                    'id': job_offer.id,
+                    'title': job_offer.title,
+                    'location': job_offer.location,
+                    'required_skills': job_offer.required_skills or [],
+                    'required_experience_years': job_offer.required_experience_years,
+                },
+                'ranking_summary': summary_stats,
+                'ranked_candidates': ranked_candidates,
+                'errors': errors if errors else None,
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'error': str(e),
+                'detail': 'Failed to rank candidates'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
