@@ -29,13 +29,13 @@ from .mixins import CSRFExemptMixin
 @ensure_csrf_cookie
 def cv_upload_page(request):
     """Serve the CV upload test page"""
-    return render(request, 'cv_upload_test.html')
+    return render(request, 'cv_upload_modern.html')
 
 
 @ensure_csrf_cookie
 def create_job_offer_page(request):
     """Serve the create job offer page"""
-    return render(request, 'create_job_offer_modern.html')
+    return render(request, 'create_job_offer.html')
 
 
 @ensure_csrf_cookie
@@ -358,6 +358,20 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
             print(f"Warning: Could not extract requirements: {str(e)}")
             pass
     
+    def _extract_primary_education(self, education_data):
+        if not education_data:
+            return ''
+        if isinstance(education_data, list):
+            return education_data[0] if education_data else ''
+        return str(education_data)
+
+    def _get_required_soft_skills(self, job_offer):
+        extracted = job_offer.extracted_requirements or {}
+        soft_skills = extracted.get('soft_skills', [])
+        if not soft_skills and hasattr(job_offer, 'required_soft_skills'):
+            return job_offer.required_soft_skills or []
+        return soft_skills if isinstance(soft_skills, list) else [soft_skills]
+
     @action(detail=True, methods=['post'])
     def process_requirements(self, request, pk=None):
         """Extract and process requirements from job description"""
@@ -374,6 +388,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
         job_offer.extracted_requirements = extracted
         job_offer.required_skills = extracted.get('required_skills', [])
         job_offer.required_experience_years = extracted.get('required_experience_years', 0)
+        job_offer.required_education = self._extract_primary_education(extracted.get('required_education'))
         job_offer.save()
         
         # Generate embedding
@@ -444,6 +459,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                         'required_skills': job_offer.required_skills or [],
                         'required_experience_years': job_offer.required_experience_years or 0,
                         'required_education': job_offer.required_education or '',
+                        'required_soft_skills': self._get_required_soft_skills(job_offer),
                     }
                     
                     detailed_scores = vector_matcher.calculate_detailed_scores(candidate_data, job_data)
@@ -579,7 +595,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                         'required_skills': job_offer.required_skills or [],
                         'required_experience_years': job_offer.required_experience_years or 0,
                         'required_education': job_offer.required_education or '',
-                        'required_soft_skills': request.data.get('required_soft_skills', []),
+                        'required_soft_skills': request.data.get('required_soft_skills') or self._get_required_soft_skills(job_offer),
                     }
                     
                     # Calculate detailed scores
@@ -701,12 +717,11 @@ class MatchViewSet(viewsets.ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=True, methods=['get'])
     def explanation(self, request, pk=None):
         """Get detailed explanation of a match"""
         match = self.get_object()
-        
         return Response({
             'overall_score': match.overall_score,
             'explanation': match.match_explanation,
@@ -714,12 +729,11 @@ class MatchViewSet(viewsets.ModelViewSet):
             'gaps': match.gaps,
             'recommendations': match.recommendations,
         })
-    
+
     @action(detail=True, methods=['post'])
     def generate_summary(self, request, pk=None):
         """Generate executive summary for a match"""
         match = self.get_object()
-        
         candidate_data = {
             'full_name': match.candidate.full_name,
             'technical_skills': match.candidate.technical_skills,
@@ -728,17 +742,13 @@ class MatchViewSet(viewsets.ModelViewSet):
             'education_level': match.candidate.education_level,
             'soft_skills': match.candidate.soft_skills,
         }
-        
         job_data = {
             'title': match.job_offer.title,
             'required_skills': match.job_offer.required_skills,
             'required_experience_years': match.job_offer.required_experience_years,
         }
-        
         rag_engine = RAGEngine()
         summary = rag_engine.generate_candidate_summary(candidate_data, job_data)
-        
-        # Create generated document
         GeneratedDocument.objects.create(
             document_type='candidate_summary',
             candidate=match.candidate,
@@ -747,31 +757,25 @@ class MatchViewSet(viewsets.ModelViewSet):
             content=summary,
             generated_by=request.user
         )
-        
         return Response({'summary': summary}, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['post'])
     def generate_email(self, request, pk=None):
         """Generate contact email for a candidate"""
         match = self.get_object()
-        
         candidate_data = {
             'full_name': match.candidate.full_name,
             'technical_skills': match.candidate.technical_skills,
         }
-        
         job_data = {
             'title': match.job_offer.title,
         }
-        
         rag_engine = RAGEngine()
         email_content = rag_engine.generate_email_content(
             candidate_data,
             job_data,
             match.overall_score / 100
         )
-        
-        # Create generated document
         GeneratedDocument.objects.create(
             document_type='contact_email',
             candidate=match.candidate,
@@ -780,7 +784,6 @@ class MatchViewSet(viewsets.ModelViewSet):
             content=email_content,
             generated_by=request.user
         )
-        
         return Response({'email_content': email_content}, status=status.HTTP_200_OK)
 
 

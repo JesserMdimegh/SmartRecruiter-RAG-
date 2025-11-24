@@ -118,7 +118,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -147,6 +150,7 @@ RAG_MAX_TOKENS = 1000
 # Sentence-BERT Configuration
 SENTENCE_BERT_MODEL = 'sentence-transformers/all-mpnet-base-v2'
 EMBEDDING_DIMENSION = 768
+FINE_TUNED_MATCHER_PATH = 'models/custom_matcher'
 
 # Matching Weights
 MATCHING_WEIGHTS = {
