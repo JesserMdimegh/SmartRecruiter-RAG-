@@ -27,54 +27,60 @@ class RAGEngine:
         Returns:
             Human-readable explanation
         """
-        # Build the explanation
+        def bar(value: float) -> str:
+            filled = int(max(0, min(1, value)) * 20)
+            return "█" * filled + "░" * (20 - filled)
+
         explanation_parts = []
-        
-        # Overall score (percent)
         overall_score = scores.get('overall_score', 0) * 100
         explanation_parts.append(f"Compatibility score: {overall_score:.0f}%\n")
+        explanation_parts.append("Score breakdown:\n")
+        explanation_parts.append(
+            f"- Similarity : {scores.get('similarity', 0):.0%} | {bar(scores.get('similarity', 0))}\n"
+        )
+        explanation_parts.append(
+            f"- Technical  : {scores.get('technical_skills', 0):.0%} | {bar(scores.get('technical_skills', 0))}\n"
+        )
+        explanation_parts.append(
+            f"- Experience : {scores.get('experience', 0):.0%} | {bar(scores.get('experience', 0))}\n"
+        )
+        explanation_parts.append(
+            f"- Education  : {scores.get('education', 0):.0%} | {bar(scores.get('education', 0))}\n"
+        )
+        explanation_parts.append(
+            f"- Soft skills: {scores.get('soft_skills', 0):.0%} | {bar(scores.get('soft_skills', 0))}\n\n"
+        )
 
-        explanation_parts.append("Detailed analysis:\n\n")
-        
-        # Technical skills analysis
+        # Technical highlights
         explanation_parts.append("Technical skills:\n")
         candidate_skills = candidate_data.get('technical_skills', [])
         job_skills = job_data.get('required_skills', [])
-        
         matched = set(candidate_skills) & set(job_skills)
         missing = set(job_skills) - set(candidate_skills)
-        
-        for skill in matched:
-            explanation_parts.append("+ " + skill + "\n")
-        
-        for skill in missing:
-            explanation_parts.append("- " + skill + " (missing skill)\n")
-        
+        if matched:
+            explanation_parts.append("  ✓ Matches: " + ", ".join(sorted(matched)) + "\n")
+        if missing:
+            explanation_parts.append("  ✗ Missing: " + ", ".join(sorted(missing)) + "\n")
         explanation_parts.append("\n")
-        
+
         # Experience analysis
-        explanation_parts.append("Experience:\n")
         candidate_exp = candidate_data.get('experience_years', 0)
         job_exp_required = job_data.get('required_experience_years', 0)
-        
-        if candidate_exp >= job_exp_required:
-            explanation_parts.append("+ " + str(candidate_exp) + " years experience (required: " + str(job_exp_required) + ")\n")
-        else:
-            explanation_parts.append("- " + str(candidate_exp) + " years (required: " + str(job_exp_required) + ")\n")
-        
+        explanation_parts.append("Experience:\n")
+        explanation_parts.append(
+            f"  Candidate: {candidate_exp} yrs | Required: {job_exp_required} yrs\n"
+        )
         explanation_parts.append("\n")
-        
+
         # Recommendation
         explanation_parts.append("Recommendation:\n")
-        
-        # overall_score is in [0, 100]
         if overall_score >= 80:
-            explanation_parts.append("Excellent candidate, highly recommended for this position.\n")
+            explanation_parts.append("  ✅ Excellent candidate; proceed to interviews.\n")
         elif overall_score >= 60:
-            explanation_parts.append("Good candidate with potential; evaluate gaps and training possibilities.\n")
+            explanation_parts.append("  👍 Solid match; address noted gaps before next step.\n")
         else:
-            explanation_parts.append("Consider if profile brings complementary value; otherwise explore other candidates.\n")
-        
+            explanation_parts.append("  ⚠️ Significant gaps; consider alternative candidates.\n")
+
         return "".join(explanation_parts)
     
     def answer_question(self, question: str, candidate_data: Dict[str, Any], 

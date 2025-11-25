@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Offers - SmartRecruitAI</title>
-    
+{% extends "hr_base.html" %}
+{% block title %}Job Offers - SmartRecruitAI{% endblock %}
+{% block nav_list_jobs_class %}active{% endblock %}
+{% block extra_head %}
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -399,8 +396,9 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
+    <div class="modern-theme">
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -412,20 +410,20 @@
                 <p>Manage and view all your active job postings</p>
                 
                 <!-- Navigation -->
-                <nav class="nav-links">
-                    <a href="/create-job/" class="nav-link">
+                <nav class="modern-nav-links">
+                    <a href="/create-job/" class="modern-nav-link">
                         <i class="fas fa-plus-circle mr-2"></i>Create Job
                     </a>
-                    <a href="/list-jobs/" class="nav-link">
+                    <a href="/list-jobs/" class="modern-nav-link">
                         <i class="fas fa-list mr-2"></i>List Jobs
                     </a>
-                    <a href="/match-cv/" class="nav-link">
+                    <a href="/match-cv/" class="modern-nav-link">
                         <i class="fas fa-search mr-2"></i>Match CV
                     </a>
-                    <a href="/upload-cv/" class="nav-link">
+                    <a href="/upload-cv/" class="modern-nav-link">
                         <i class="fas fa-upload mr-2"></i>Upload CV
                     </a>
-                    <a href="/admin/" class="nav-link">
+                    <a href="/admin/" class="modern-nav-link">
                         <i class="fas fa-cog mr-2"></i>Admin
                     </a>
                 </nav>
@@ -519,7 +517,10 @@
             </button>
         </div>
     </main>
+    </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         // State management
         let jobs = [];
@@ -792,5 +793,4 @@
             loadJobs();
         });
     </script>
-</body>
-</html>
+{% endblock %}

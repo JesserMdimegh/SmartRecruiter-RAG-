@@ -107,7 +107,7 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
+.modern-body {
   font-family: var(--font-sans);
   background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
   color: var(--gray-900);
@@ -116,7 +116,32 @@ body {
   position: relative;
 }
 
-body::before {
+.modern-body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.modern-theme {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
+  color: var(--gray-900);
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  width: 100%;
+}
+
+.modern-theme::before {
   content: '';
   position: fixed;
   top: 0;
@@ -135,7 +160,7 @@ body::before {
    Layout Components
    =========================================== */
 
-.container {
+.modern-theme .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6);
@@ -143,7 +168,7 @@ body::before {
   z-index: 2;
 }
 
-.glass-card {
+.modern-theme .glass-card {
   background: rgba(255, 255, 255, 0.95);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
@@ -154,12 +179,12 @@ body::before {
   transition: all var(--transition);
 }
 
-.glass-card:hover {
+.modern-theme .glass-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 30px 60px -15px rgb(0 0 0 / 0.3);
 }
 
-.header {
+.modern-theme .header {
   background: linear-gradient(135deg, var(--primary-600) 0%, var(--secondary-600) 100%);
   color: white;
   padding: var(--space-10) var(--space-8);
@@ -168,7 +193,7 @@ body::before {
   overflow: hidden;
 }
 
-.header::before {
+.modern-theme .header::before {
   content: '';
   position: absolute;
   top: 0;
@@ -184,14 +209,14 @@ body::before {
   100% { transform: translateX(100%); }
 }
 
-.header h1 {
+.modern-theme .header h1 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: var(--space-2);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.header p {
+.modern-theme .header p {
   font-size: 1.125rem;
   opacity: 0.9;
   max-width: 600px;
@@ -202,7 +227,7 @@ body::before {
    Navigation
    =========================================== */
 
-.nav-links {
+.modern-theme .modern-nav-links {
   display: flex;
   gap: var(--space-4);
   justify-content: center;
@@ -210,7 +235,7 @@ body::before {
   margin-top: var(--space-6);
 }
 
-.nav-link {
+.modern-theme .modern-nav-link {
   color: white;
   text-decoration: none;
   padding: var(--space-3) var(--space-6);
@@ -225,7 +250,7 @@ body::before {
   overflow: hidden;
 }
 
-.nav-link::before {
+.modern-theme .modern-nav-link::before {
   content: '';
   position: absolute;
   top: 0;
@@ -237,11 +262,11 @@ body::before {
   transition: transform var(--transition);
 }
 
-.nav-link:hover::before {
+.modern-theme .modern-nav-link:hover::before {
   transform: translateY(0);
 }
 
-.nav-link:hover {
+.modern-theme .modern-nav-link:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
@@ -392,7 +417,7 @@ body::before {
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1b 100%);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -642,11 +667,11 @@ body::before {
     font-size: 2rem;
   }
   
-  .nav-links {
+  .modern-theme .modern-nav-links {
     gap: var(--space-2);
   }
   
-  .nav-link {
+  .modern-theme .modern-nav-link {
     padding: var(--space-2) var(--space-4);
     font-size: 0.875rem;
   }
@@ -655,18 +680,18 @@ body::before {
     padding: var(--space-6);
   }
   
-  .btn {
+  .modern-theme .btn {
     padding: var(--space-3) var(--space-6);
     font-size: 0.875rem;
   }
   
-  .card {
+  .modern-theme .card {
     padding: var(--space-4);
   }
 }
 
 @media (max-width: 480px) {
-  .header h1 {
+  .modern-theme .header h1 {
     font-size: 1.75rem;
   }
   
@@ -679,7 +704,7 @@ body::before {
     justify-content: center;
   }
   
-  .nav-links {
+  .modern-nav-links {
     flex-direction: column;
     align-items: center;
   }
@@ -703,7 +728,7 @@ body::before {
     --gray-900: #f9fafb;
   }
   
-  body {
+  .modern-theme .modern-body {
     background: linear-gradient(135deg, #1e293b 0%, #581c87 100%);
   }
   

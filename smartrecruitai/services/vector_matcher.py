@@ -20,6 +20,10 @@ except ImportError:
     cosine = None
 
 from typing import List, Dict, Any, Tuple
+from pathlib import Path
+import json
+from django.conf import settings
+import unicodedata
 
 
 class VectorMatcher:
@@ -32,6 +36,22 @@ class VectorMatcher:
         Args:
             model_name: Name of the Sentence-BERT model to use
         """
+        # Resolve model name in three steps:
+        # 1. If a fine-tuned matcher path exists and is a directory, prefer it.
+        # 2. Otherwise, use the SENTENCE_BERT_MODEL setting if defined.
+        # 3. Finally, fall back to the provided default value.
+        try:
+            fine_tuned_path = getattr(settings, 'FINE_TUNED_MATCHER_PATH', None)
+            if fine_tuned_path and Path(fine_tuned_path).exists():
+                model_name = fine_tuned_path
+            else:
+                configured_name = getattr(settings, 'SENTENCE_BERT_MODEL', None)
+                if configured_name:
+                    model_name = configured_name
+        except Exception:
+            # If settings are not available (e.g. in isolated tests), keep the original value.
+            pass
+
         if SENTENCE_TRANSFORMERS_AVAILABLE:
             self.model = SentenceTransformer(model_name)
             self.model_name = model_name
@@ -273,18 +293,10 @@ class VectorMatcher:
         else:
             scores['experience'] = 1.0
         
-        # Education score (simple binary for now)
-        candidate_education = candidate_data.get('education_level', '').lower()
-        required_education = job_data.get('required_education', '').lower()
-        
-        if required_education:
-            # Simple matching logic
-            if required_education in candidate_education:
-                scores['education'] = 1.0
-            else:
-                scores['education'] = 0.5
-        else:
-            scores['education'] = 1.0
+        scores['education'] = self._calculate_education_score(
+            candidate_data.get('education_level'),
+            job_data.get('required_education')
+        )
         
         # Soft skills score (enhanced matching)
         candidate_soft = set(skill.lower().strip() for skill in candidate_data.get('soft_skills', []) if skill)
@@ -303,6 +315,65 @@ class VectorMatcher:
                 scores['soft_skills'] = 0.0
         
         return scores
+
+    def _normalize_education_text(self, education_data: Any) -> str:
+        if not education_data:
+            return ''
+        if isinstance(education_data, list):
+            return ' '.join(str(item) for item in education_data if item)
+        if isinstance(education_data, str):
+            text = education_data.strip()
+            if text.startswith('[') and text.endswith(']'):
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, list):
+                        return ' '.join(str(item) for item in parsed if item)
+                except json.JSONDecodeError:
+                    pass
+            return text
+        return str(education_data)
+
+    def _infer_degree_level(self, education_data: Any) -> float:
+        text = unicodedata.normalize('NFKD', self._normalize_education_text(education_data).lower())
+        text = text.replace('é', 'e').replace('è', 'e').replace('ê', 'e')
+        if not text:
+            return 0.0
+
+        degree_levels = [
+            (4.0, ['doctor of philosophy', 'phd', 'doctorate', 'dr.', 'doctor of science']),
+            (3.5, ['master', 'msc', 'm.s.', 'ma ', 'mba', 'ingenieur', 'ingénieur', 'engineering degree']),
+            (2.5, ['bachelor', 'licence', 'license', 'licenciatura', 'bsc', 'ba', 'undergraduate degree']),
+            (1.5, ['associate', 'dut', 'bts', 'deug']),
+            (1.2, ['diploma', 'diplome', 'certificate', 'certificat']),
+            (0.7, ['high school', 'secondary school', 'lycee', 'lycée', 'baccalaureat', 'bac'])
+        ]
+
+        for level, keywords in degree_levels:
+            for keyword in keywords:
+                if keyword in text:
+                    return level
+        return 0.0
+
+    def _calculate_education_score(self, candidate_education: Any, required_education: Any) -> float:
+        candidate_level = self._infer_degree_level(candidate_education)
+        required_level = self._infer_degree_level(required_education)
+
+        if required_level > 0:
+            if candidate_level <= 0:
+                score = 0.2
+            elif candidate_level >= required_level:
+                bonus = min(0.2, (candidate_level - required_level) * 0.1)
+                score = min(1.0, 0.85 + bonus)
+            else:
+                ratio = candidate_level / required_level
+                score = max(0.3, ratio)
+        else:
+            if candidate_level > 0:
+                score = min(1.0, 0.6 + (candidate_level / 5))
+            else:
+                score = 0.4
+
+        return float(round(max(0.0, min(score, 1.0)), 2))
 
     def calculate_overall_score(self, similarity: float, detailed_scores: Dict[str, float], weights: Dict[str, float] | None = None) -> float:
         """Combine similarity and detailed scores into a single 0-100 score.

@@ -3,14 +3,16 @@ Views for SmartRecruitAI API
 """
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.db.models.functions import TruncMonth
+import json
 
 from .models import (
     Recruiter, Candidate, CV, JobOffer, Match,
@@ -29,13 +31,13 @@ from .mixins import CSRFExemptMixin
 @ensure_csrf_cookie
 def cv_upload_page(request):
     """Serve the CV upload test page"""
-    return render(request, 'cv_upload_test.html')
+    return render(request, 'cv_upload_modern.html')
 
 
 @ensure_csrf_cookie
 def create_job_offer_page(request):
     """Serve the create job offer page"""
-    return render(request, 'create_job_offer_modern.html')
+    return render(request, 'create_job_offer.html')
 
 
 @ensure_csrf_cookie
@@ -54,6 +56,73 @@ def match_cv_page(request):
 def cv_ranking_page(request):
     """Serve the advanced CV ranking page"""
     return render(request, 'cv_ranking.html')
+
+
+@ensure_csrf_cookie
+def hr_dashboard_page(request):
+    """Serve the modern HR analytics dashboard shell (data fetched via AJAX)."""
+    return render(request, 'hr_dashboard_modern.html')
+
+
+def hr_dashboard_data(request):
+    """Return live HR dashboard metrics as JSON."""
+    job_offers = JobOffer.objects.all()
+    matches = Match.objects.select_related('candidate', 'job_offer')
+
+    job_status_data = list(job_offers.values('status').annotate(total=Count('id')).order_by('status'))
+    match_status_data = list(matches.values('status').annotate(total=Count('id')).order_by('status'))
+    monthly_application_data = list(
+        matches.annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total=Count('id'))
+        .order_by('month')
+    )
+
+    data = {
+        'job_offer_count': job_offers.count(),
+        'open_job_offer_count': job_offers.filter(status='open').count(),
+        'candidates_count': Candidate.objects.count(),
+        'applications_count': matches.count(),
+        'pending_matches': matches.filter(status='pending').count(),
+        'shortlisted_matches': matches.filter(status='shortlisted').count(),
+        'interview_matches': matches.filter(status='interview').count(),
+        'hired_matches': matches.filter(status='hired').count(),
+        'job_status': [
+            {'label': item['status'].title(), 'total': item['total']}
+            for item in job_status_data
+        ],
+        'match_status': [
+            {'label': item['status'].title(), 'total': item['total']}
+            for item in match_status_data
+        ],
+        'monthly_applications': [
+            {
+                'label': item['month'].strftime('%b %Y') if item['month'] else 'Unknown',
+                'total': item['total'],
+            }
+            for item in monthly_application_data
+        ],
+        'recent_job_offers': [
+            {
+                'title': job.title,
+                'location': job.location,
+                'status': job.status,
+                'created_at': job.created_at.strftime('%b %d, %Y') if job.created_at else '',
+            }
+            for job in job_offers.order_by('-created_at')[:5]
+        ],
+        'recent_matches': [
+            {
+                'candidate': match.candidate.full_name or 'Unnamed Candidate',
+                'job_title': match.job_offer.title,
+                'status': match.status,
+                'created_at': match.created_at.strftime('%b %d, %Y') if match.created_at else '',
+            }
+            for match in matches.order_by('-created_at')[:5]
+        ],
+    }
+
+    return JsonResponse(data)
 
 
 class CandidateViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
@@ -246,6 +315,16 @@ class CandidateViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
             candidate.soft_skills = extracted_data.get('soft_skills', [])
             candidate.total_experience_years = extracted_data.get('experience_years', 0)
             candidate.education_level = str(extracted_data.get('education', []))
+            candidate.languages = extracted_data.get('languages', [])
+            candidate.certifications = extracted_data.get('certifications', [])
+            
+            # Save professional links
+            professional_links = extracted_data.get('professional_links', {})
+            candidate.professional_links = professional_links
+            candidate.linkedin_url = professional_links.get('linkedin', [''])[0] if professional_links.get('linkedin') else ''
+            candidate.github_url = professional_links.get('github', [''])[0] if professional_links.get('github') else ''
+            candidate.gitlab_url = professional_links.get('gitlab', [''])[0] if professional_links.get('gitlab') else ''
+            candidate.portfolio_urls = professional_links.get('portfolio', [])
             candidate.save()
             
             # Generate embedding
@@ -343,21 +422,49 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
             job_text = f"{job_offer.description} {job_offer.requirements}"
             extracted = nlp_extractor.extract_job_requirements(job_text)
             
-            # Update job offer with extracted data if needed
+            # Update job offer with extracted data if needed, but don't overwrite user-provided values
+            changed = False
             if extracted.get('required_skills'):
                 # Merge with existing required_skills
                 existing_skills = job_offer.required_skills or []
                 new_skills = extracted.get('required_skills', [])
                 # Combine and remove duplicates
-                all_skills = list(set(existing_skills + new_skills))
-                job_offer.required_skills = all_skills
-                job_offer.required_experience_years = extracted.get('required_experience_years', job_offer.required_experience_years or 0)
+                all_skills = list(dict.fromkeys(existing_skills + new_skills))
+                if all_skills != existing_skills:
+                    job_offer.required_skills = all_skills
+                    changed = True
+
+            extracted_experience = extracted.get('required_experience_years')
+            if extracted_experience is not None and not job_offer.required_experience_years:
+                job_offer.required_experience_years = extracted_experience
+                changed = True
+
+            # Always persist the extracted metadata so downstream ranking can access soft skills
+            if extracted:
+                job_offer.extracted_requirements = extracted
+                changed = True
+
+            if changed:
                 job_offer.save()
         except Exception as e:
             # If NLP extraction fails, continue with the job offer as is
             print(f"Warning: Could not extract requirements: {str(e)}")
             pass
     
+    def _extract_primary_education(self, education_data):
+        if not education_data:
+            return ''
+        if isinstance(education_data, list):
+            return education_data[0] if education_data else ''
+        return str(education_data)
+
+    def _get_required_soft_skills(self, job_offer):
+        extracted = job_offer.extracted_requirements or {}
+        soft_skills = extracted.get('soft_skills', [])
+        if not soft_skills and hasattr(job_offer, 'required_soft_skills'):
+            return job_offer.required_soft_skills or []
+        return soft_skills if isinstance(soft_skills, list) else [soft_skills]
+
     @action(detail=True, methods=['post'])
     def process_requirements(self, request, pk=None):
         """Extract and process requirements from job description"""
@@ -374,6 +481,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
         job_offer.extracted_requirements = extracted
         job_offer.required_skills = extracted.get('required_skills', [])
         job_offer.required_experience_years = extracted.get('required_experience_years', 0)
+        job_offer.required_education = self._extract_primary_education(extracted.get('required_education'))
         job_offer.save()
         
         # Generate embedding
@@ -444,6 +552,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                         'required_skills': job_offer.required_skills or [],
                         'required_experience_years': job_offer.required_experience_years or 0,
                         'required_education': job_offer.required_education or '',
+                        'required_soft_skills': self._get_required_soft_skills(job_offer),
                     }
                     
                     detailed_scores = vector_matcher.calculate_detailed_scores(candidate_data, job_data)
@@ -579,7 +688,7 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                         'required_skills': job_offer.required_skills or [],
                         'required_experience_years': job_offer.required_experience_years or 0,
                         'required_education': job_offer.required_education or '',
-                        'required_soft_skills': request.data.get('required_soft_skills', []),
+                        'required_soft_skills': request.data.get('required_soft_skills') or self._get_required_soft_skills(job_offer),
                     }
                     
                     # Calculate detailed scores
@@ -621,6 +730,10 @@ class JobOfferViewSet(CSRFExemptMixin, viewsets.ModelViewSet):
                         'technical_skills': candidate.technical_skills or [],
                         'soft_skills': candidate.soft_skills or [],
                         'education_level': candidate.education_level or 'Not specified',
+                        'languages': candidate.languages or [],
+                        'certifications': candidate.certifications or [],
+                        'cv_text': candidate.cv_text or '',
+                        'professional_links': candidate.professional_links or {},
                         
                         # Scoring details
                         'overall_score': round(overall_percent, 2),
@@ -701,12 +814,11 @@ class MatchViewSet(viewsets.ModelViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=True, methods=['get'])
     def explanation(self, request, pk=None):
         """Get detailed explanation of a match"""
         match = self.get_object()
-        
         return Response({
             'overall_score': match.overall_score,
             'explanation': match.match_explanation,
@@ -714,12 +826,11 @@ class MatchViewSet(viewsets.ModelViewSet):
             'gaps': match.gaps,
             'recommendations': match.recommendations,
         })
-    
+
     @action(detail=True, methods=['post'])
     def generate_summary(self, request, pk=None):
         """Generate executive summary for a match"""
         match = self.get_object()
-        
         candidate_data = {
             'full_name': match.candidate.full_name,
             'technical_skills': match.candidate.technical_skills,
@@ -728,17 +839,13 @@ class MatchViewSet(viewsets.ModelViewSet):
             'education_level': match.candidate.education_level,
             'soft_skills': match.candidate.soft_skills,
         }
-        
         job_data = {
             'title': match.job_offer.title,
             'required_skills': match.job_offer.required_skills,
             'required_experience_years': match.job_offer.required_experience_years,
         }
-        
         rag_engine = RAGEngine()
         summary = rag_engine.generate_candidate_summary(candidate_data, job_data)
-        
-        # Create generated document
         GeneratedDocument.objects.create(
             document_type='candidate_summary',
             candidate=match.candidate,
@@ -747,31 +854,25 @@ class MatchViewSet(viewsets.ModelViewSet):
             content=summary,
             generated_by=request.user
         )
-        
         return Response({'summary': summary}, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['post'])
     def generate_email(self, request, pk=None):
         """Generate contact email for a candidate"""
         match = self.get_object()
-        
         candidate_data = {
             'full_name': match.candidate.full_name,
             'technical_skills': match.candidate.technical_skills,
         }
-        
         job_data = {
             'title': match.job_offer.title,
         }
-        
         rag_engine = RAGEngine()
         email_content = rag_engine.generate_email_content(
             candidate_data,
             job_data,
             match.overall_score / 100
         )
-        
-        # Create generated document
         GeneratedDocument.objects.create(
             document_type='contact_email',
             candidate=match.candidate,
@@ -780,7 +881,6 @@ class MatchViewSet(viewsets.ModelViewSet):
             content=email_content,
             generated_by=request.user
         )
-        
         return Response({'email_content': email_content}, status=status.HTTP_200_OK)
 
 

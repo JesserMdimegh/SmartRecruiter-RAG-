@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartRecruitAI - CV Ranking System</title>
+{% extends "hr_base.html" %}
+{% block title %}SmartRecruitAI - CV Ranking System{% endblock %}
+{% block nav_cv_ranking_class %}active{% endblock %}
+{% block extra_head %}
     <style>
         * {
             margin: 0;
@@ -15,7 +13,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
@@ -97,6 +94,13 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: #555;
+        }
+
+        .form-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #777;
         }
 
         select, input, textarea {
@@ -736,6 +740,15 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
+        .ranked-candidate.successful {
+            border-color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.08) 0%, rgba(32, 201, 151, 0.05) 100%);
+        }
+
+        .ranked-candidate.successful .rank-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
         .rank-badge {
             display: inline-block;
             width: 40px;
@@ -747,6 +760,22 @@
             line-height: 40px;
             font-weight: bold;
             margin-right: 15px;
+        }
+
+        .success-pill {
+            display: none;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(40, 167, 69, 0.15);
+            color: #1e7e34;
+        }
+
+        .ranked-candidate.successful .success-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .score-display {
@@ -827,8 +856,8 @@
             border: 1px solid #c3e6cb;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="container">
         <div class="header">
             <h1>🎯 SmartRecruitAI</h1>
@@ -856,34 +885,6 @@
                 </div>
             </div>
 
-            <!-- Step 2: Select Soft Skills -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">2</div>
-                    <div class="step-title">Required Soft Skills</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="softSkillInput">Add required soft skills (type and press Enter):</label>
-                    <input type="text" id="softSkillInput" placeholder="e.g., leadership, communication, teamwork">
-                    <div class="soft-skills-tags" id="softSkillsTags"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Quick Add Common Soft Skills:</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('leadership')">Leadership</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('communication')">Communication</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('teamwork')">Teamwork</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('problem-solving')">Problem-Solving</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('critical thinking')">Critical Thinking</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('time management')">Time Management</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('proactive')">Proactive</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('adaptability')">Adaptability</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Step 3: Select Candidates -->
             <div class="step">
                 <div class="step-header">
@@ -896,6 +897,12 @@
                         <input type="checkbox" id="selectAll" onchange="toggleAllCandidates()"> 
                         Select All Candidates
                     </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="successCount">Number of successful candidates to highlight:</label>
+                    <input type="number" id="successCount" min="1" value="3" oninput="updateSuccessCount()">
+                    <small class="form-hint">After ranking, the top N candidates will be marked as successful in green.</small>
                 </div>
 
                 <div id="candidatesGrid" class="candidates-grid">
@@ -993,20 +1000,32 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         let jobOffers = [];
         let candidates = [];
         let selectedCandidates = new Set();
-        let selectedSoftSkills = new Set();
         let rankingResults = null;
+        let successfulCount = 3;
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             loadJobOffers();
             loadCandidates();
-            setupSoftSkillInput();
         });
+
+        function updateSuccessCount() {
+            const input = document.getElementById('successCount');
+            const value = parseInt(input.value, 10);
+            if (Number.isNaN(value) || value < 1) {
+                successfulCount = 1;
+                input.value = 1;
+                return;
+            }
+            successfulCount = value;
+        }
 
         // Progress tracking functions
         function updateProgress(step, message, progress) {
@@ -1415,51 +1434,6 @@
             updateRankButton();
         }
 
-        // Setup soft skill input
-        function setupSoftSkillInput() {
-            const input = document.getElementById('softSkillInput');
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const skill = input.value.trim();
-                    if (skill) {
-                        addSoftSkill(skill);
-                        input.value = '';
-                    }
-                }
-            });
-        }
-
-        // Add soft skill
-        function addSoftSkill(skill) {
-            if (!selectedSoftSkills.has(skill.toLowerCase())) {
-                selectedSoftSkills.add(skill.toLowerCase());
-                displaySoftSkills();
-            }
-        }
-
-        // Remove soft skill
-        function removeSoftSkill(skill) {
-            selectedSoftSkills.delete(skill.toLowerCase());
-            displaySoftSkills();
-        }
-
-        // Display soft skills tags
-        function displaySoftSkills() {
-            const container = document.getElementById('softSkillsTags');
-            container.innerHTML = '';
-            
-            selectedSoftSkills.forEach(skill => {
-                const tag = document.createElement('div');
-                tag.className = 'soft-skill-tag';
-                tag.innerHTML = `
-                    ${skill}
-                    <span class="remove" onclick="removeSoftSkill('${skill}')">×</span>
-                `;
-                container.appendChild(tag);
-            });
-        }
-
         // Update rank button state
         function updateRankButton() {
             const hasJob = document.getElementById('jobOffer').value;
@@ -1510,8 +1484,7 @@
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                     body: JSON.stringify({
-                        candidate_ids: Array.from(selectedCandidates),
-                        required_soft_skills: Array.from(selectedSoftSkills)
+                        candidate_ids: Array.from(selectedCandidates)
                     })
                 });
 
@@ -1579,6 +1552,9 @@
             data.ranked_candidates.forEach((candidate, index) => {
                 const candidateCard = document.createElement('div');
                 candidateCard.className = 'ranked-candidate';
+                if (index < successfulCount) {
+                    candidateCard.classList.add('successful');
+                }
                 
                 const strengthsHtml = candidate.strengths.map(s => 
                     `<div class="strength-item">✓ ${s}</div>`
@@ -1596,6 +1572,7 @@
                                 <div style="font-size: 1.3rem; font-weight: 600;">${candidate.full_name}</div>
                                 <div style="color: #666;">${candidate.email} • ${candidate.current_position}</div>
                             </div>
+                            <span class="success-pill">🏅 Successful candidate</span>
                         </div>
                         <div class="overall-score">${candidate.overall_score}%</div>
                     </div>
@@ -1652,9 +1629,7 @@
             document.getElementById('jobDetails').style.display = 'none';
             document.getElementById('selectAll').checked = false;
             selectedCandidates.clear();
-            selectedSoftSkills.clear();
             displayCandidates();
-            displaySoftSkills();
             document.getElementById('results').classList.remove('show');
             document.getElementById('candidatePreview').classList.remove('show');
             updateRankButton();
@@ -1688,5 +1663,4 @@
             return cookieValue;
         }
     </script>
-</body>
-</html>
+{% endblock %}
