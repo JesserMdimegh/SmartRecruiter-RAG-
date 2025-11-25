@@ -35,15 +35,23 @@ class NLPExtractor:
         # Skill normalization dictionary
         self.skill_normalization = {
             "ML": "Machine Learning",
+            "MACHINELEARNING": "Machine Learning",
             "DL": "Deep Learning",
+            "DEEPLEARNING": "Deep Learning",
             "JS": "JavaScript",
+            "JAVASCRIPT": "JavaScript",
             "TS": "TypeScript",
+            "TYPESCRIPT": "TypeScript",
             "AI": "Artificial Intelligence",
             "NLP": "Natural Language Processing",
             "CV": "Computer Vision",
             "AWS": "Amazon Web Services",
             "AZ": "Azure",
+            "MSAZURE": "Microsoft Azure",
+            "GCP": "Google Cloud Platform",
             "DB": "Database",
+            "SQL": "SQL",
+            "NOSQL": "NoSQL",
         }
     
     def extract_cv_data(self, cv_text: str) -> Dict[str, Any]:
@@ -162,9 +170,7 @@ class NLPExtractor:
         
         for keyword in tech_keywords:
             if keyword in text_lower:
-                # Normalize the skill
-                normalized_key = keyword.upper().replace(' ', '')
-                normalized = self.skill_normalization.get(normalized_key, keyword.title())
+                normalized = self.normalize_skill(keyword)
                 found_skills.append(normalized)
         
         # Remove duplicates while preserving order
@@ -296,23 +302,37 @@ class NLPExtractor:
         return 0.0
     
     def _extract_education(self, text: str, doc=None) -> List[str]:
-        """Extract education information"""
-        education_keywords = [
-            'master', 'licence', 'bachelor', 'doctorate', 'phd',
-            'bac', 'diploma', 'degree', 'graduated', 'university',
-            'école', 'school', 'ingénieur', 'engineer', 'engineering',
+        """Extract concise education entries like “Master in Data Science”"""
+        import re
+        entries = []
+        degree_patterns = [
+            r"(?P<degree>master|msc|ma|mba|ing[ée]nieur|engineer|engineering)\s+(?P<field>[\w\s&-]{2,60})",
+            r"(?P<degree>bachelor|licence|bsc|ba|undergraduate)\s+(?P<field>[\w\s&-]{2,60})",
+            r"(?P<degree>doctorate|phd|doctor)\s+(?P<field>[\w\s&-]{2,60})",
+            r"(?P<degree>associate|dut|bts)\s+(?P<field>[\w\s&-]{2,60})",
         ]
-        
-        text_lower = text.lower()
-        found = []
-        
-        # Extract education lines
-        for line in text.split('\n'):
-            line_lower = line.lower()
-            if any(keyword in line_lower for keyword in education_keywords):
-                found.append(line.strip())
-        
-        return found
+
+        # Search across text
+        for pattern in degree_patterns:
+            for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+                degree = match.group('degree').strip().title()
+                field = match.group('field').strip(' ,.-')
+                entry = f"{degree} in {field.title()}"
+                if entry not in entries:
+                    entries.append(entry)
+
+        # Fallback: look at lines with education keywords but keep only first 6 words
+        if not entries:
+            education_keywords = ['master', 'licence', 'bachelor', 'doctor', 'phd', 'diploma', 'degree', 'university', 'school', 'ingénieur']
+            for line in text.split('\n'):
+                lower = line.lower().strip()
+                if any(keyword in lower for keyword in education_keywords):
+                    words = line.strip().split()
+                    snippet = ' '.join(words[:8])
+                    if snippet and snippet not in entries:
+                        entries.append(snippet)
+
+        return entries[:3]
     
     def _extract_certifications(self, text: str, doc=None) -> List[str]:
         """Extract certifications"""
@@ -657,6 +677,12 @@ class NLPExtractor:
     
     def normalize_skill(self, skill: str) -> str:
         """Normalize skill name"""
-        skill_upper = skill.upper()
-        return self.skill_normalization.get(skill_upper, skill.title())
+        key = skill.upper().replace(" ", "")
+        if key in self.skill_normalization:
+            return self.skill_normalization[key]
+        if key.endswith("DEV"):
+            return skill.title().replace("Dev", " Developer")
+        if key in {"ML", "DL", "AI", "NLP", "CV"}:
+            return self.skill_normalization.get(key, skill.title())
+        return skill.title()
 

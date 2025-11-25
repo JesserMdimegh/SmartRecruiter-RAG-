@@ -127,6 +127,7 @@ class JobOffer(TimestampedModel):
     
     # Required skills and qualifications
     required_skills = models.JSONField(default=list)
+    required_soft_skills = models.JSONField(default=list, blank=True)
     required_experience_years = models.IntegerField(default=0)
     required_education = models.CharField(max_length=200, blank=True)
     

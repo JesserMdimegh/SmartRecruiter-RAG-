@@ -62,6 +62,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
             'id', 'recruiter', 'recruiter_company', 'title', 'description',
             'requirements', 'location', 'job_type', 'remote_allowed',
             'salary_min', 'salary_max', 'currency', 'required_skills',
+            'required_soft_skills',
             'required_experience_years', 'required_education', 'status',
             'published_date', 'closing_date', 'embedding', 'extracted_requirements',
             'created_at', 'updated_at'
@@ -71,17 +72,26 @@ class JobOfferSerializer(serializers.ModelSerializer):
 
 class JobOfferCreateSerializer(serializers.ModelSerializer):
     required_skills = serializers.JSONField(default=list, allow_null=True)
+    required_soft_skills = serializers.JSONField(default=list, allow_null=True)
     
     class Meta:
         model = JobOffer
         fields = [
             'title', 'description', 'requirements', 'location', 'job_type',
             'remote_allowed', 'salary_min', 'salary_max', 'currency',
-            'required_skills', 'required_experience_years', 'required_education'
+            'required_skills', 'required_soft_skills', 'required_experience_years', 'required_education'
         ]
     
     def validate_required_skills(self, value):
         """Ensure required_skills is a list"""
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            return [value] if value else []
+        return value
+
+    def validate_required_soft_skills(self, value):
+        """Ensure required_soft_skills is a list"""
         if value is None:
             return []
         if not isinstance(value, list):

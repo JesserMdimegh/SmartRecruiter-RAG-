@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match CV to Job - SmartRecruitAI</title>
+{% extends "hr_base.html" %}
+{% block title %}Match CV to Job - SmartRecruitAI{% endblock %}
+{% block nav_match_cv_class %}active{% endblock %}
+{% block extra_head %}
     <style>
         * {
             margin: 0;
@@ -15,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
         }
         
         .container {
@@ -504,8 +502,8 @@
             margin-top: 20px;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="container">
         <div class="header">
             <h1>Match CV to Job Offer</h1>
@@ -644,7 +642,9 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         // Load job offers on page load
         async function loadJobs() {
@@ -1134,6 +1134,5 @@
         // Load jobs on page load
         loadJobs();
     </script>
-</body>
-</html>
+{% endblock %}
 

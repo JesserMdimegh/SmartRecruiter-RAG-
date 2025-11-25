@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartRecruitAI - CV Ranking System</title>
+{% extends "hr_base.html" %}
+{% block title %}SmartRecruitAI - CV Ranking System{% endblock %}
+{% block nav_cv_ranking_class %}active{% endblock %}
+{% block extra_head %}
     <style>
         * {
             margin: 0;
@@ -15,7 +13,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
@@ -827,8 +824,8 @@
             border: 1px solid #c3e6cb;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="container">
         <div class="header">
             <h1>🎯 SmartRecruitAI</h1>
@@ -853,34 +850,6 @@
                 <div id="jobDetails" class="job-details" style="display: none;">
                     <h4>Job Details</h4>
                     <div id="jobDetailsContent"></div>
-                </div>
-            </div>
-
-            <!-- Step 2: Select Soft Skills -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">2</div>
-                    <div class="step-title">Required Soft Skills</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="softSkillInput">Add required soft skills (type and press Enter):</label>
-                    <input type="text" id="softSkillInput" placeholder="e.g., leadership, communication, teamwork">
-                    <div class="soft-skills-tags" id="softSkillsTags"></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Quick Add Common Soft Skills:</label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('leadership')">Leadership</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('communication')">Communication</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('teamwork')">Teamwork</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('problem-solving')">Problem-Solving</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('critical thinking')">Critical Thinking</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('time management')">Time Management</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('proactive')">Proactive</button>
-                        <button type="button" class="skill-tag" onclick="addSoftSkill('adaptability')">Adaptability</button>
-                    </div>
                 </div>
             </div>
 
@@ -993,19 +962,19 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         let jobOffers = [];
         let candidates = [];
         let selectedCandidates = new Set();
-        let selectedSoftSkills = new Set();
         let rankingResults = null;
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             loadJobOffers();
             loadCandidates();
-            setupSoftSkillInput();
         });
 
         // Progress tracking functions
@@ -1415,51 +1384,6 @@
             updateRankButton();
         }
 
-        // Setup soft skill input
-        function setupSoftSkillInput() {
-            const input = document.getElementById('softSkillInput');
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const skill = input.value.trim();
-                    if (skill) {
-                        addSoftSkill(skill);
-                        input.value = '';
-                    }
-                }
-            });
-        }
-
-        // Add soft skill
-        function addSoftSkill(skill) {
-            if (!selectedSoftSkills.has(skill.toLowerCase())) {
-                selectedSoftSkills.add(skill.toLowerCase());
-                displaySoftSkills();
-            }
-        }
-
-        // Remove soft skill
-        function removeSoftSkill(skill) {
-            selectedSoftSkills.delete(skill.toLowerCase());
-            displaySoftSkills();
-        }
-
-        // Display soft skills tags
-        function displaySoftSkills() {
-            const container = document.getElementById('softSkillsTags');
-            container.innerHTML = '';
-            
-            selectedSoftSkills.forEach(skill => {
-                const tag = document.createElement('div');
-                tag.className = 'soft-skill-tag';
-                tag.innerHTML = `
-                    ${skill}
-                    <span class="remove" onclick="removeSoftSkill('${skill}')">×</span>
-                `;
-                container.appendChild(tag);
-            });
-        }
-
         // Update rank button state
         function updateRankButton() {
             const hasJob = document.getElementById('jobOffer').value;
@@ -1510,8 +1434,7 @@
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                     body: JSON.stringify({
-                        candidate_ids: Array.from(selectedCandidates),
-                        required_soft_skills: Array.from(selectedSoftSkills)
+                        candidate_ids: Array.from(selectedCandidates)
                     })
                 });
 
@@ -1652,9 +1575,7 @@
             document.getElementById('jobDetails').style.display = 'none';
             document.getElementById('selectAll').checked = false;
             selectedCandidates.clear();
-            selectedSoftSkills.clear();
             displayCandidates();
-            displaySoftSkills();
             document.getElementById('results').classList.remove('show');
             document.getElementById('candidatePreview').classList.remove('show');
             updateRankButton();
@@ -1688,5 +1609,4 @@
             return cookieValue;
         }
     </script>
-</body>
-</html>
+{% endblock %}

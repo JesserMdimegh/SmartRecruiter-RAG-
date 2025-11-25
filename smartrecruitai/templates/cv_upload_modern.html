@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload CV - SmartRecruitAI</title>
-    
+{% extends "hr_base.html" %}
+{% block title %}Upload CV - SmartRecruitAI{% endblock %}
+{% block nav_upload_cv_class %}active{% endblock %}
+{% block extra_head %}
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -411,8 +408,8 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -573,7 +570,9 @@
             </div>
         </div>
     </main>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         // State management
         let uploadedFiles = new Map();
@@ -809,5 +808,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

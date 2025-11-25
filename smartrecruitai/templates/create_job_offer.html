@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Job Offer - SmartRecruitAI</title>
+{% extends "hr_base.html" %}
+{% block title %}Create Job Offer - SmartRecruitAI{% endblock %}
+{% block nav_create_job_class %}active{% endblock %}
+{% block extra_head %}
     <style>
         * {
             margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
         
@@ -15,7 +12,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
         }
         
         .container {
@@ -183,8 +179,9 @@
             width: auto;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <div class="header">
             <h1>Create Job Offer</h1>
@@ -258,6 +255,15 @@
                     <div class="skills-list" id="skillsList"></div>
                     <input type="hidden" id="required_skills" name="required_skills">
                 </div>
+
+                <div class="form-group">
+                    <label for="softSkillInput">Required Soft Skills</label>
+                    <div class="skills-input">
+                        <input type="text" id="softSkillInput" placeholder="Enter a soft skill and press Enter">
+                    </div>
+                    <div class="skills-list" id="softSkillsList"></div>
+                    <input type="hidden" id="required_soft_skills" name="required_soft_skills">
+                </div>
                 
                 <div class="form-group">
                     <label for="required_experience_years">Required Experience (Years)</label>
@@ -275,9 +281,12 @@
             <div id="result" class="result"></div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         const skills = [];
+        const softSkills = [];
         
         document.getElementById('skillInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -286,6 +295,18 @@
                 if (skill && !skills.includes(skill)) {
                     skills.push(skill);
                     updateSkillsList();
+                    this.value = '';
+                }
+            }
+        });
+
+        document.getElementById('softSkillInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const skill = this.value.trim();
+                if (skill && !softSkills.includes(skill)) {
+                    softSkills.push(skill);
+                    updateSoftSkillsList();
                     this.value = '';
                 }
             }
@@ -301,10 +322,26 @@
             `).join('');
             document.getElementById('required_skills').value = JSON.stringify(skills);
         }
-        
+
+        function updateSoftSkillsList() {
+            const list = document.getElementById('softSkillsList');
+            list.innerHTML = softSkills.map((skill, index) => `
+                <div class="skill-tag">
+                    ${skill}
+                    <span onclick="removeSoftSkill(${index})">×</span>
+                </div>
+            `).join('');
+            document.getElementById('required_soft_skills').value = JSON.stringify(softSkills);
+        }
+
         function removeSkill(index) {
             skills.splice(index, 1);
             updateSkillsList();
+        }
+
+        function removeSoftSkill(index) {
+            softSkills.splice(index, 1);
+            updateSoftSkillsList();
         }
         
         document.getElementById('jobOfferForm').addEventListener('submit', async function(e) {
@@ -326,6 +363,7 @@
                 salary_max: parseInt(document.getElementById('salary_max').value) || null,
                 currency: document.getElementById('currency').value,
                 required_skills: skills.length > 0 ? skills : [], // Ensure it's an array
+                required_soft_skills: softSkills.length > 0 ? softSkills : [],
                 required_experience_years: parseInt(document.getElementById('required_experience_years').value) || 0,
                 required_education: document.getElementById('required_education').value,
             };
@@ -400,6 +438,4 @@
             }
         });
     </script>
-</body>
-</html>
-
+{% endblock %}
